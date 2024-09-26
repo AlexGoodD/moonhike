@@ -9,9 +9,10 @@ import '../../core/utils/location_utils.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:moonhike/presentation/screens/login.dart';
 import 'dart:math' as math;
 import 'dart:async';
+import 'login.dart';
+import 'profile_screen.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -30,7 +31,7 @@ class _MapScreenState extends State<MapScreen> {
   String? _userEmail;
   StreamSubscription<Position>? _positionStream;
 
-  final RouteRepository routeRepository = RouteRepository(RouteService('YOUR_GOOGLE_MAPS_API_KEY'));
+  final RouteRepository routeRepository = RouteRepository(RouteService('AIzaSyDNHOPdlWDOqsFiL9_UQCkg2fnlpyww6A4'));
   late GetRoutesUseCase getRoutesUseCase;
 
   _MapScreenState() {
@@ -246,40 +247,45 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Bienvenido', style: TextStyle(color: Colors.white, fontSize: 24)),
-                  SizedBox(height: 10),
-                  if (_userEmail != null)
-                    Text(_userEmail!, style: TextStyle(color: Colors.white, fontSize: 16)),
-                ],
-              ),
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: Colors.blue,
             ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Inicio'),
-              onTap: () {
-                Navigator.pop(context);
-              },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Bienvenido', style: TextStyle(color: Colors.white, fontSize: 24)),
+                SizedBox(height: 10),
+                if (_userEmail != null)
+                  Text(_userEmail!, style: TextStyle(color: Colors.white, fontSize: 16)),
+              ],
             ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Cerrar Sesión'),
-              onTap: () {
-                _logout();
-              },
-            ),
-          ],
-        ),
+          ),
+          ListTile(
+            leading: Icon(Icons.home),
+            title: Text('Perfil'),
+            onTap: () {
+              Navigator.pop(context); // Cierra el Drawer
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.logout),
+            title: Text('Cerrar Sesión'),
+            onTap: () {
+              _logout();
+            },
+          ),
+        ],
       ),
+    ),
+
       appBar: AppBar(title: Text('MoonHike')),
       body: Stack(
         children: [
