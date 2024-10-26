@@ -1,9 +1,5 @@
 //Archivo que se ejecuta al iniciar la aplicación
-
-import 'package:flutter/material.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:moonhike/presentation/screens/login.dart';
-import 'firebase_options.dart';
+import 'imports.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

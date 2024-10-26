@@ -1,6 +1,5 @@
 import 'dart:math' as math;
-
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:moonhike/imports.dart';
 
 double calculate_distance_use_case(LatLng start, LatLng end) {
   const double earthRadius = 6371000; // Radio de la Tierra en metros

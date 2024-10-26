@@ -1,8 +1,5 @@
 //Este archivo contiene la pantalla de registro
-
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:moonhike/presentation/screens/home.dart';
+import 'package:moonhike/imports.dart';
 
 class RegisterPage extends StatefulWidget {
   @override

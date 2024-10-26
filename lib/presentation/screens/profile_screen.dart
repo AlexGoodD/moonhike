@@ -1,7 +1,5 @@
 //Este archivo contiene la pantalla de detalles del perfil
-
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
+import 'package:moonhike/imports.dart';
 
 class ProfileScreen extends StatefulWidget {
   @override
