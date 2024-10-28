@@ -64,28 +64,37 @@ class MapController {
   Future<void> startRoutes(LatLng? destination) async {
     if (currentPosition == null || destination == null) return;
     routes = await routeRepository.fetchRoutes(currentPosition!, destination);
+    if (routes.isEmpty) return;
     int safestRouteIndex = _getSafestRouteIndex();
-    polylines.clear();
     selectRoute(safestRouteIndex);
+    updateUI?.call();
   }
 
   void selectRoute(int index) {
     selectedRouteIndex = index;
     polylines.clear();
+    
     for (int i = 0; i < routes.length; i++) {
       polylines.add(Polyline(
         polylineId: PolylineId('route_$i'),
         points: routes[i],
-        color: i == selectedRouteIndex ? Colors.blue : Colors.grey,
+        color: i == selectedRouteIndex ? AppColors.routeSelected : AppColors.routeAlternative,
         width: 5,
       ));
     }
+
+    // Llama al callback para actualizar la UI
     updateUI?.call();
-    loadReports();
   }
 
+
   Future<void> createReport(BuildContext context, String reportType, String note) async {
-    if (currentPosition == null) return;
+    if (currentPosition == null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text("No se pudo obtener la ubicación actual. Inténtalo de nuevo."),
+      ));
+      return;
+    }
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     DocumentReference reportRef = await firestore.collection('reports').add({
@@ -96,6 +105,7 @@ class MapController {
       'timestamp': FieldValue.serverTimestamp(),
     });
 
+    // Usamos el ID de `reportRef` como `MarkerId` para identificar el marcador de forma única
     markers.add(
       Marker(
         markerId: MarkerId(reportRef.id),
@@ -115,8 +125,12 @@ class MapController {
         ),
       ),
     );
+
+    // Llamada para actualizar la interfaz y cargar los reportes desde Firebase
+    await loadReports();
     updateUI?.call();
   }
+
 
   Future<void> loadReports() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
