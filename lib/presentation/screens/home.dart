@@ -1,8 +1,4 @@
-// home.dart
-import 'package:flutter/material.dart';
 import 'package:moonhike/imports.dart';
-import 'package:moonhike/presentation/widgets/floating_action_buttons.dart';
-import 'package:moonhike/presentation/screens/map_controller.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -22,7 +18,7 @@ class _MapScreenState extends State<MapScreen> {
     super.initState();
 
     // Initialize the services and controller
-    routeService = RouteService('YOUR_API_KEY');
+    routeService = RouteService('AIzaSyDNHOPdlWDOqsFiL9_UQCkg2fnlpyww6A4');
     routeRepository = RouteRepository(routeService);
     mapController = MapController(routeRepository: routeRepository);
 
@@ -127,9 +123,9 @@ class _MapScreenState extends State<MapScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al iniciar la ruta: $e')));
                 }
               },
-              onCreateReport: (type, note) async {
+              onCreateReport: () async {
                 try {
-                  await mapController.createReport(context, type, note);
+                  await mapController.createReport();
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al crear reporte: $e')));
                 }

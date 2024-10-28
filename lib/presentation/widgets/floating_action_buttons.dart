@@ -1,11 +1,8 @@
-// floating_action_buttons.dart
-
 import 'package:flutter/material.dart';
-import 'report_dialog.dart';
 
 class FloatingActionButtons extends StatelessWidget {
-  final VoidCallback onStartRoute;
-  final Function(String, String) onCreateReport; // Cambiar tipo de función
+  final Future<void> Function() onStartRoute;
+  final Future<void> Function() onCreateReport;
   final bool showStartRouteButton;
 
   FloatingActionButtons({
@@ -21,21 +18,16 @@ class FloatingActionButtons extends StatelessWidget {
       children: [
         if (showStartRouteButton)
           FloatingActionButton(
-            onPressed: onStartRoute,
+            onPressed: () async {
+              await onStartRoute();
+            },
             child: Icon(Icons.directions_walk),
             backgroundColor: Colors.blue,
           ),
         SizedBox(height: 10),
         FloatingActionButton(
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (context) => ReportDialog(
-                onReportSubmit: (reportType, note) {
-                  onCreateReport(reportType, note);
-                },
-              ),
-            );
+          onPressed: () async {
+            await onCreateReport();
           },
           child: Icon(Icons.report),
           backgroundColor: Colors.red,

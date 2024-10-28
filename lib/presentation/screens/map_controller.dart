@@ -1,11 +1,5 @@
 import 'dart:async';
 import 'dart:math' as math;
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
-import 'package:intl/intl.dart';
 import 'package:moonhike/imports.dart';
 
 class MapController {
@@ -17,10 +11,10 @@ class MapController {
   Set<Polyline> polylines = {};
   String? userEmail;
   StreamSubscription<Position>? positionStream;
-  StreamSubscription<QuerySnapshot>? reportsSubscription;
+  StreamSubscription<QuerySnapshot>? reportsSubscription; // Listener para cambios en Firestore
   List<List<LatLng>> routes = [];
   int selectedRouteIndex = 0;
-  VoidCallback? updateUI;
+  VoidCallback? updateUI; // Callback para actualizar la UI
 
   final RouteRepository routeRepository;
 
@@ -28,7 +22,7 @@ class MapController {
 
   void init() {
     _getUserEmail();
-    _listenToReportChanges();
+    _listenToReportChanges(); // Inicia el listener para los reportes
   }
 
   Future<void> _getUserEmail() async {
@@ -47,9 +41,10 @@ class MapController {
 
   void dispose() {
     positionStream?.cancel();
-    reportsSubscription?.cancel();
+    reportsSubscription?.cancel(); // Cancela la suscripción para los reportes
   }
 
+  // Nueva función para definir el callback de actualización de UI
   void setUpdateUICallback(VoidCallback callback) {
     updateUI = callback;
   }
@@ -63,85 +58,60 @@ class MapController {
 
   Future<void> startRoutes(LatLng? destination) async {
     if (currentPosition == null || destination == null) return;
-    routes = await routeRepository.fetchRoutes(currentPosition!, destination);
-    if (routes.isEmpty) return;
+    routes = await getRoutes(currentPosition!, destination);
     int safestRouteIndex = _getSafestRouteIndex();
+    polylines.clear();
     selectRoute(safestRouteIndex);
-    updateUI?.call();
   }
 
   void selectRoute(int index) {
     selectedRouteIndex = index;
     polylines.clear();
-    
     for (int i = 0; i < routes.length; i++) {
       polylines.add(Polyline(
         polylineId: PolylineId('route_$i'),
         points: routes[i],
-        color: i == selectedRouteIndex ? AppColors.routeSelected : AppColors.routeAlternative,
+        color: i == selectedRouteIndex ? Colors.blue : Colors.grey,
         width: 5,
       ));
     }
 
-    // Llama al callback para actualizar la UI
+    // Llamar al callback para actualizar la UI
     updateUI?.call();
   }
 
-
-  Future<void> createReport(BuildContext context, String reportType, String note) async {
-    if (currentPosition == null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text("No se pudo obtener la ubicación actual. Inténtalo de nuevo."),
-      ));
-      return;
-    }
+  Future<void> createReport() async {
+    if (currentPosition == null) return;
 
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    DocumentReference reportRef = await firestore.collection('reports').add({
+    await firestore.collection('reports').add({
       'user': userEmail,
-      'type': reportType,
-      'note': note,
       'location': GeoPoint(currentPosition!.latitude, currentPosition!.longitude),
       'timestamp': FieldValue.serverTimestamp(),
     });
 
-    // Usamos el ID de `reportRef` como `MarkerId` para identificar el marcador de forma única
-    markers.add(
-      Marker(
-        markerId: MarkerId(reportRef.id),
-        position: currentPosition!,
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
-        infoWindow: InfoWindow(
-          title: 'Reporte: $reportType',
-          snippet: note.isNotEmpty ? note : 'Sin detalles',
-          onTap: () {
-            showReportDetailsDialog(
-              context,
-              reportType,
-              note,
-              DateTime.now(),
-            );
-          },
-        ),
-      ),
-    );
-
-    // Llamada para actualizar la interfaz y cargar los reportes desde Firebase
+    // Actualiza los reportes y muestra el marcador inmediatamente
     await loadReports();
-    updateUI?.call();
+    updateUI?.call(); // Llamar al callback de actualización
   }
 
+  Future<List<List<LatLng>>> getRoutes(LatLng start, LatLng end) async {
+    // Usar RouteRepository para obtener las rutas
+    return await routeRepository.fetchRoutes(start, end);
+  }
 
   Future<void> loadReports() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference reports = firestore.collection('reports');
     QuerySnapshot querySnapshot = await reports.get();
+
     _updateMarkersAndCircles(querySnapshot);
   }
 
   void _updateMarkersAndCircles(QuerySnapshot querySnapshot) {
     markers.clear();
     circles.clear();
+
     for (var doc in querySnapshot.docs) {
       GeoPoint location = doc['location'];
       LatLng reportPosition = LatLng(location.latitude, location.longitude);
@@ -149,6 +119,7 @@ class MapController {
         markerId: MarkerId('report_${doc.id}'),
         position: reportPosition,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        infoWindow: InfoWindow(title: 'Reporte de la comunidad'),
       );
       Circle circle = Circle(
         circleId: CircleId('danger_area_${doc.id}'),
@@ -161,12 +132,16 @@ class MapController {
       markers.add(marker);
       circles.add(circle);
     }
+
+    // Actualizar la UI después de cambiar los marcadores y círculos
     updateUI?.call();
   }
 
   void _listenToReportChanges() {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference reports = firestore.collection('reports');
+
+    // Escucha cambios en tiempo real en la colección 'reports'
     reportsSubscription = reports.snapshots().listen((snapshot) {
       _updateMarkersAndCircles(snapshot);
     });
@@ -185,6 +160,7 @@ class MapController {
     if (routes.isEmpty) return 0;
     int minReports = double.maxFinite.toInt();
     int safestRouteIndex = 0;
+
     for (int i = 0; i < routes.length; i++) {
       int reportsCount = _countReportsNearRoute(routes[i]);
       if (reportsCount < minReports) {
@@ -199,6 +175,7 @@ class MapController {
     int reportCount = 0;
     const double proximityThreshold = 50.0;
     Set<String> countedMarkers = {};
+
     for (var point in route) {
       for (var marker in markers) {
         if (countedMarkers.contains(marker.markerId.value)) continue;
@@ -223,41 +200,14 @@ class MapController {
     return earthRadius * c;
   }
 
-  void showReportDetailsDialog(BuildContext context, String reportType, String note, DateTime timestamp) {
-    String formattedDate = DateFormat('yyyy-MM-dd – HH:mm').format(timestamp);
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Detalles del Reporte'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('Tipo de reporte: $reportType'),
-              SizedBox(height: 8),
-              Text('Fecha y hora: $formattedDate'),
-              SizedBox(height: 8),
-              Text('Detalles: ${note.isNotEmpty ? note : 'Sin detalles'}'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text('Cerrar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
   Future<void> logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
+      // Eliminar UID de SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('userUID');
+
+      // Redirigir a la pantalla de inicio de sesión
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
