@@ -80,7 +80,7 @@ class MapController {
     updateUI?.call();
   }
 
-  Future<void> createReport(String reportType) async {
+  Future<void> createReport(String reportType, String note) async {
     if (currentPosition == null) return;
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     await firestore.collection('reports').add({
@@ -88,11 +88,13 @@ class MapController {
       'location': GeoPoint(currentPosition!.latitude, currentPosition!.longitude),
       'timestamp': FieldValue.serverTimestamp(),
       'type': reportType, // Guarda el tipo de reporte
+      'note': note,       // Guarda la nota opcional
     });
 
     // Actualiza los marcadores según el tipo de reporte
     _updateMarkersAndCircles(await firestore.collection('reports').get());
   }
+
 
 
   Future<List<List<LatLng>>> getRoutes(LatLng start, LatLng end) async {
@@ -129,10 +131,10 @@ class MapController {
 
       if (reportType == 'mala iluminación') {
         markerHue = BitmapDescriptor.hueYellow;
-        circleColor = Colors.yellow.withOpacity(0.3);
+        circleColor = const Color.fromARGB(255, 206, 198, 124).withOpacity(0.3);
       } else if (reportType == 'inseguridad') {
         markerHue = BitmapDescriptor.hueViolet;
-        circleColor = Colors.purple.withOpacity(0.3);
+        circleColor = const Color.fromARGB(255, 101, 39, 176).withOpacity(0.3);
       } else {
         markerHue = BitmapDescriptor.hueRed;
         circleColor = Colors.red.withOpacity(0.3);

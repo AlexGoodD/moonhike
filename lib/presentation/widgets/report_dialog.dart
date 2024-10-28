@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 
-class ReportDialog extends StatelessWidget {
-  final Function(String) onReportTypeSelected;
+class ReportDialog extends StatefulWidget {
+  final Function(String, String) onReportTypeSelected;
 
   ReportDialog({required this.onReportTypeSelected});
+
+  @override
+  _ReportDialogState createState() => _ReportDialogState();
+}
+
+class _ReportDialogState extends State<ReportDialog> {
+  String note = ""; // Almacena la nota escrita por el usuario
 
   @override
   Widget build(BuildContext context) {
@@ -15,17 +22,25 @@ class ReportDialog extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.lightbulb),
             title: Text('mala iluminación'),
-            onTap: () => onReportTypeSelected('mala iluminación'),
+            onTap: () => widget.onReportTypeSelected('mala iluminación', note),
           ),
           ListTile(
             leading: Icon(Icons.warning),
             title: Text('inseguridad'),
-            onTap: () => onReportTypeSelected('inseguridad'),
+            onTap: () => widget.onReportTypeSelected('inseguridad', note),
           ),
           ListTile(
             leading: Icon(Icons.directions_walk),
             title: Text('Interés peatonal'),
-            onTap: () => onReportTypeSelected('interés peatonal'),
+            onTap: () => widget.onReportTypeSelected('interés peatonal', note),
+          ),
+          TextField(
+            decoration: InputDecoration(labelText: 'Nota (opcional)'),
+            onChanged: (value) {
+              setState(() {
+                note = value;
+              });
+            },
           ),
         ],
       ),
