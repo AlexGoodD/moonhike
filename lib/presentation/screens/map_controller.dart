@@ -109,51 +109,61 @@ class MapController {
   }
 
   void _updateMarkersAndCircles(QuerySnapshot querySnapshot) {
-  markers.clear();
-  circles.clear();
+    markers.clear();
+    circles.clear();
 
-  for (var doc in querySnapshot.docs) {
-    GeoPoint location = doc['location'];
-    LatLng reportPosition = LatLng(location.latitude, location.longitude);
+    for (var doc in querySnapshot.docs) {
+      GeoPoint location = doc['location'];
+      LatLng reportPosition = LatLng(location.latitude, location.longitude);
 
-    // Determina el color del marcador y del círculo basado en el tipo de reporte
-    double markerHue;
-    Color circleColor;
-    String reportType = doc['type'];
+      // Datos del reporte
+      String reportType = doc['type'];
+      String reportUser = doc['user'] ?? 'Usuario desconocido';
+      DateTime reportTimestamp = (doc['timestamp'] as Timestamp).toDate();
+      String reportDate = '${reportTimestamp.day}/${reportTimestamp.month}/${reportTimestamp.year}';
+      String reportTime = '${reportTimestamp.hour}:${reportTimestamp.minute}';
 
-    if (reportType == 'mala iluminación') {
-      markerHue = BitmapDescriptor.hueYellow; // Amarillo para mala iluminación
-      circleColor = Colors.yellow.withOpacity(0.3); // Círculo amarillo
-    } else if (reportType == 'inseguridad') {
-      markerHue = BitmapDescriptor.hueViolet; // Morado para inseguridad
-      circleColor = Colors.purple.withOpacity(0.3); // Círculo morado
-    } else {
-      markerHue = BitmapDescriptor.hueRed; // Rojo por defecto
-      circleColor = Colors.red.withOpacity(0.3); // Círculo rojo
+      // Determina el color del marcador y del círculo basado en el tipo de reporte
+      double markerHue;
+      Color circleColor;
+
+      if (reportType == 'mala iluminación') {
+        markerHue = BitmapDescriptor.hueYellow;
+        circleColor = Colors.yellow.withOpacity(0.3);
+      } else if (reportType == 'inseguridad') {
+        markerHue = BitmapDescriptor.hueViolet;
+        circleColor = Colors.purple.withOpacity(0.3);
+      } else {
+        markerHue = BitmapDescriptor.hueRed;
+        circleColor = Colors.red.withOpacity(0.3);
+      }
+
+      Marker marker = Marker(
+        markerId: MarkerId('report_${doc.id}'),
+        position: reportPosition,
+        icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
+        infoWindow: InfoWindow(
+          title: reportType,
+          snippet: 'Creado por: $reportUser\nFecha: $reportDate\nHora: $reportTime',
+        ),
+      );
+
+      Circle circle = Circle(
+        circleId: CircleId('danger_area_${doc.id}'),
+        center: reportPosition,
+        radius: 20,
+        fillColor: circleColor,
+        strokeColor: circleColor.withOpacity(0.6),
+        strokeWidth: 2,
+      );
+
+      markers.add(marker);
+      circles.add(circle);
     }
 
-    Marker marker = Marker(
-      markerId: MarkerId('report_${doc.id}'),
-      position: reportPosition,
-      icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
-      infoWindow: InfoWindow(title: 'Reporte de la comunidad'),
-    );
-
-    Circle circle = Circle(
-      circleId: CircleId('danger_area_${doc.id}'),
-      center: reportPosition,
-      radius: 20,
-      fillColor: circleColor,
-      strokeColor: circleColor.withOpacity(0.6), // Color de borde con mayor opacidad
-      strokeWidth: 2,
-    );
-    markers.add(marker);
-    circles.add(circle);
+    // Llamar al callback para actualizar la UI después de cambiar los marcadores y círculos
+    updateUI?.call();
   }
-
-  // Llamar al callback para actualizar la UI después de cambiar los marcadores y círculos
-  updateUI?.call();
-}
 
   void _listenToReportChanges() {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
