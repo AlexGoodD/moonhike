@@ -156,7 +156,6 @@ class MapController {
         strokeColor: circleColor.withOpacity(0.6),
         strokeWidth: 2,
       );
-
       markers.add(marker);
       circles.add(circle);
     }
