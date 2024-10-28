@@ -124,12 +124,25 @@ class _MapScreenState extends State<MapScreen> {
                 }
               },
               onCreateReport: () async {
-                try {
-                  await mapController.createReport();
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al crear reporte: $e')));
-                }
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return ReportDialog(
+                      onReportTypeSelected: (String reportType) async {
+                        Navigator.of(context).pop(); // Cierra el diálogo
+                        try {
+                          await mapController.createReport(reportType); // Envía el tipo de reporte al controlador
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error al crear reporte: $e')),
+                          );
+                        }
+                      },
+                    );
+                  },
+                );
               },
+
               showStartRouteButton: showStartRouteButton,
             ),
           ),

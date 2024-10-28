@@ -37,6 +37,7 @@ export 'package:moonhike/presentation/screens/register.dart';
 export 'package:moonhike/presentation/widgets/floating_action_buttons.dart';
 export 'package:moonhike/presentation/widgets/map_widget.dart';
 export 'package:moonhike/presentation/widgets/route_selection_widget.dart';
+export 'package:moonhike/presentation/widgets/report_dialog.dart';
 
 
 
