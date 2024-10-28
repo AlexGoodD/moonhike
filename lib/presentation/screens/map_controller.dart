@@ -1,4 +1,11 @@
+import 'dart:async';
 import 'dart:math' as math;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:moonhike/imports.dart';
 
 class MapController {
@@ -10,10 +17,10 @@ class MapController {
   Set<Polyline> polylines = {};
   String? userEmail;
   StreamSubscription<Position>? positionStream;
-  StreamSubscription<QuerySnapshot>? reportsSubscription; // Listener para cambios en Firestore
+  StreamSubscription<QuerySnapshot>? reportsSubscription;
   List<List<LatLng>> routes = [];
   int selectedRouteIndex = 0;
-  VoidCallback? updateUI; // Callback para actualizar la UI
+  VoidCallback? updateUI;
 
   final RouteRepository routeRepository;
 
@@ -21,7 +28,7 @@ class MapController {
 
   void init() {
     _getUserEmail();
-    _listenToReportChanges(); // Inicia el listener para los reportes
+    _listenToReportChanges();
   }
 
   Future<void> _getUserEmail() async {
@@ -40,10 +47,9 @@ class MapController {
 
   void dispose() {
     positionStream?.cancel();
-    reportsSubscription?.cancel(); // Cancela la suscripción para los reportes
+    reportsSubscription?.cancel();
   }
 
-  // Nueva función para definir el callback de actualización de UI
   void setUpdateUICallback(VoidCallback callback) {
     updateUI = callback;
   }
@@ -57,7 +63,7 @@ class MapController {
 
   Future<void> startRoutes(LatLng? destination) async {
     if (currentPosition == null || destination == null) return;
-    routes = await getRoutes(currentPosition!, destination);
+    routes = await routeRepository.fetchRoutes(currentPosition!, destination);
     int safestRouteIndex = _getSafestRouteIndex();
     polylines.clear();
     selectRoute(safestRouteIndex);
@@ -74,40 +80,54 @@ class MapController {
         width: 5,
       ));
     }
-
-    // Llamar al callback para actualizar la UI
     updateUI?.call();
-
     loadReports();
   }
 
-  Future<void> createReport() async {
+  Future<void> createReport(BuildContext context, String reportType, String note) async {
     if (currentPosition == null) return;
+
     FirebaseFirestore firestore = FirebaseFirestore.instance;
-    await firestore.collection('reports').add({
+    DocumentReference reportRef = await firestore.collection('reports').add({
       'user': userEmail,
+      'type': reportType,
+      'note': note,
       'location': GeoPoint(currentPosition!.latitude, currentPosition!.longitude),
       'timestamp': FieldValue.serverTimestamp(),
     });
-  }
 
-  Future<List<List<LatLng>>> getRoutes(LatLng start, LatLng end) async {
-    // Usar RouteRepository para obtener las rutas
-    return await routeRepository.fetchRoutes(start, end);
+    markers.add(
+      Marker(
+        markerId: MarkerId(reportRef.id),
+        position: currentPosition!,
+        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueViolet),
+        infoWindow: InfoWindow(
+          title: 'Reporte: $reportType',
+          snippet: note.isNotEmpty ? note : 'Sin detalles',
+          onTap: () {
+            showReportDetailsDialog(
+              context,
+              reportType,
+              note,
+              DateTime.now(),
+            );
+          },
+        ),
+      ),
+    );
+    updateUI?.call();
   }
 
   Future<void> loadReports() async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference reports = firestore.collection('reports');
     QuerySnapshot querySnapshot = await reports.get();
-
     _updateMarkersAndCircles(querySnapshot);
   }
 
   void _updateMarkersAndCircles(QuerySnapshot querySnapshot) {
     markers.clear();
     circles.clear();
-
     for (var doc in querySnapshot.docs) {
       GeoPoint location = doc['location'];
       LatLng reportPosition = LatLng(location.latitude, location.longitude);
@@ -127,16 +147,12 @@ class MapController {
       markers.add(marker);
       circles.add(circle);
     }
-
-    // Actualizar la UI después de cambiar los marcadores y círculos
     updateUI?.call();
   }
 
   void _listenToReportChanges() {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference reports = firestore.collection('reports');
-
-    // Escucha cambios en tiempo real en la colección 'reports'
     reportsSubscription = reports.snapshots().listen((snapshot) {
       _updateMarkersAndCircles(snapshot);
     });
@@ -155,7 +171,6 @@ class MapController {
     if (routes.isEmpty) return 0;
     int minReports = double.maxFinite.toInt();
     int safestRouteIndex = 0;
-
     for (int i = 0; i < routes.length; i++) {
       int reportsCount = _countReportsNearRoute(routes[i]);
       if (reportsCount < minReports) {
@@ -170,7 +185,6 @@ class MapController {
     int reportCount = 0;
     const double proximityThreshold = 50.0;
     Set<String> countedMarkers = {};
-
     for (var point in route) {
       for (var marker in markers) {
         if (countedMarkers.contains(marker.markerId.value)) continue;
@@ -195,14 +209,41 @@ class MapController {
     return earthRadius * c;
   }
 
+  void showReportDetailsDialog(BuildContext context, String reportType, String note, DateTime timestamp) {
+    String formattedDate = DateFormat('yyyy-MM-dd – HH:mm').format(timestamp);
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Detalles del Reporte'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Tipo de reporte: $reportType'),
+              SizedBox(height: 8),
+              Text('Fecha y hora: $formattedDate'),
+              SizedBox(height: 8),
+              Text('Detalles: ${note.isNotEmpty ? note : 'Sin detalles'}'),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text('Cerrar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> logout(BuildContext context) async {
     try {
       await FirebaseAuth.instance.signOut();
-      // Eliminar UID de SharedPreferences
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.remove('userUID');
-
-      // Redirigir a la pantalla de inicio de sesión
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
