@@ -20,7 +20,7 @@ class _MapScreenState extends State<MapScreen> {
     // Initialize the services and controller
     routeService = RouteService('AIzaSyDNHOPdlWDOqsFiL9_UQCkg2fnlpyww6A4');
     routeRepository = RouteRepository(routeService);
-    mapController = MapController(routeRepository: routeRepository);
+    mapController = MapController(context: context, routeRepository: routeRepository);
 
     // Set callback to update UI
     mapController.setUpdateUICallback(() {

@@ -16,9 +16,10 @@ class MapController {
   int selectedRouteIndex = 0;
   VoidCallback? updateUI; // Callback para actualizar la UI
 
+  final BuildContext context;
   final RouteRepository routeRepository;
 
-  MapController({required this.routeRepository});
+  MapController({required this.context, required this.routeRepository});
 
   void init() {
     _getUserEmail();
@@ -124,9 +125,10 @@ class MapController {
       String reportUser = doc['user'] ?? 'Usuario desconocido';
       DateTime reportTimestamp = (doc['timestamp'] as Timestamp).toDate();
       String reportDate = '${reportTimestamp.day}/${reportTimestamp.month}/${reportTimestamp.year}';
-      String reportTime = '${reportTimestamp.hour}:${reportTimestamp.minute}';
+      String reportTime = '${reportTimestamp.hour}:${reportTimestamp.minute}'; // Asegúrate de que reportTime esté definido aquí
+      String note = doc['note'] ?? ''; // Asegúrate de que note esté definido aquí
 
-      // Determina el color del marcador y del círculo basado en el tipo de reporte
+      // Configuración de colores para el marcador y círculo
       double markerHue;
       Color circleColor;
 
@@ -145,10 +147,99 @@ class MapController {
         markerId: MarkerId('report_${doc.id}'),
         position: reportPosition,
         icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
-        infoWindow: InfoWindow(
-          title: reportType,
-          snippet: 'Creado por: $reportUser\nFecha: $reportDate\nHora: $reportTime',
-        ),
+        onTap: () {
+          showDialog(
+            context: this.context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                contentPadding: EdgeInsets.zero,
+                content: Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Colors.white,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Título con fondo morado
+                      Container(
+                        padding: EdgeInsets.symmetric(vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color.fromARGB(255, 94, 60, 229),
+                          borderRadius: BorderRadius.only(
+                            topLeft: Radius.circular(12),
+                            topRight: Radius.circular(12),
+                            bottomLeft: Radius.circular(12),
+                            bottomRight: Radius.circular(12),
+                          ),
+                        ),
+                        width: double.infinity,
+                        child: Center(
+                          child: Text(
+                            reportType,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 19,
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      // Información de usuario, fecha y nota
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Creado por',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(reportUser),
+                            SizedBox(height: 8),
+                            Text(
+                              'Fecha y hora de creación',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text('$reportDate $reportTime'),
+                            SizedBox(height: 8),
+                            if (note.isNotEmpty) ...[
+                              Text(
+                                'Nota',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              Text(note),
+                            ],
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      // Botón de cerrar
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: Text(
+                            'cerrar',
+                            style: TextStyle(color: const Color.fromARGB(255, 94, 60, 229)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       );
 
       Circle circle = Circle(
@@ -159,11 +250,11 @@ class MapController {
         strokeColor: circleColor.withOpacity(0.6),
         strokeWidth: 2,
       );
+
       markers.add(marker);
       circles.add(circle);
     }
 
-    // Llamar al callback para actualizar la UI después de cambiar los marcadores y círculos
     updateUI?.call();
   }
 
