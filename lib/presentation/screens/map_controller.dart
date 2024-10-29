@@ -87,13 +87,14 @@ class MapController {
       'user': userEmail,
       'location': GeoPoint(currentPosition!.latitude, currentPosition!.longitude),
       'timestamp': FieldValue.serverTimestamp(),
-      'type': reportType, // Guarda el tipo de reporte
-      'note': note,       // Guarda la nota opcional
+      'type': reportType, 
+      'note': note, // Añadir la nota al reporte
     });
 
     // Actualiza los marcadores según el tipo de reporte
     _updateMarkersAndCircles(await firestore.collection('reports').get());
   }
+
 
 
 
