@@ -1,47 +1,50 @@
 import 'dart:async';
-import 'dart:math' as math;
 import 'package:moonhike/imports.dart';
 
 class MapController {
   Completer<GoogleMapController> _mapControllerCompleter = Completer();
   GoogleMapController? controller;
-  LatLng? currentPosition;
   Set<Marker> markers = {};
   Set<Circle> circles = {};
   Set<Polyline> polylines = {};
   String? userEmail;
-  StreamSubscription<Position>? positionStream;
   StreamSubscription<QuerySnapshot>? reportsSubscription; // Listener para cambios en Firestore
   List<List<LatLng>> routes = [];
   int selectedRouteIndex = 0;
   VoidCallback? updateUI; // Callback para actualizar la UI
 
+  //Clases de otros archivos, hace funcionar la aplicación *NO BORRAR*
   final RouteRepository routeRepository;
+  final CalculateDistanceUseCase calculateDistanceUseCase = CalculateDistanceUseCase();
+  final LocationService locationService = LocationService(); // Instancia de LocationService
+  final UserService userService = UserService();
+  final ReportsService reportsService = ReportsService();
+  final MapUIService mapUIService = MapUIService(calculateDistanceUseCase: CalculateDistanceUseCase());
 
   MapController({required this.routeRepository});
 
   void init() {
-    _getUserEmail();
-    _listenToReportChanges(); // Inicia el listener para los reportes
-  }
-
-  Future<void> _getUserEmail() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    userEmail = user?.email;
-  }
-
-  Future<void> startLocationUpdates(Function(LatLng) onPositionUpdate) async {
-    positionStream = Geolocator.getPositionStream(
-      locationSettings: LocationSettings(accuracy: LocationAccuracy.high, distanceFilter: 10),
-    ).listen((Position position) {
-      currentPosition = LatLng(position.latitude, position.longitude);
-      onPositionUpdate(currentPosition!);
+    userService.getUserEmail().then((email) {
+      userEmail = email;
+    });
+    _listenToReportChanges();
+    // Iniciar la actualización de ubicación
+    locationService.startLocationUpdates((LatLng position) {
+      // Lógica adicional que se necesite al actualizar la posición
+      updateUI?.call();
     });
   }
 
   void dispose() {
-    positionStream?.cancel();
-    reportsSubscription?.cancel(); // Cancela la suscripción para los reportes
+    locationService.stopLocationUpdates(); // Detener las actualizaciones de ubicación
+    reportsSubscription?.cancel();
+  }
+
+  LatLng? get currentPosition => locationService.currentPosition; // Acceso a la posición actual
+
+  Future<void> _getUserEmail() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    userEmail = user?.email;
   }
 
   // Nueva función para definir el callback de actualización de UI
@@ -85,16 +88,8 @@ class MapController {
 
   Future<void> createReport(String reportType, String note) async {
     if (currentPosition == null) return;
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    await firestore.collection('reports').add({
-      'user': userEmail,
-      'location': GeoPoint(currentPosition!.latitude, currentPosition!.longitude),
-      'timestamp': FieldValue.serverTimestamp(),
-      'type': reportType, // Guarda el tipo de reporte
-      'note': note,       // Guarda la nota opcional
-    });
-    // Actualiza los marcadores según el tipo de reporte
-    _updateMarkersAndCircles(await firestore.collection('reports').get());
+    await reportsService.createReport(userEmail!, currentPosition!, reportType, note);
+    _updateMarkersAndCircles(await reportsService.firestore.collection('reports').get());
   }
 
   Future<List<List<LatLng>>> getRoutes(LatLng start, LatLng end) async {
@@ -111,74 +106,21 @@ class MapController {
   }
 
   void _updateMarkersAndCircles(QuerySnapshot querySnapshot) {
-    markers.clear();
-    circles.clear();
-
-    // Verificar que la ruta seleccionada esté definida
-    if (routes.isEmpty || selectedRouteIndex >= routes.length) return;
-
-    List<LatLng> selectedRoute = routes[selectedRouteIndex];
-
-    for (var doc in querySnapshot.docs) {
-      GeoPoint location = doc['location'];
-      LatLng reportPosition = LatLng(location.latitude, location.longitude);
-
-      // Verifica si el reporte está cerca de la ruta seleccionada
-      if (_isNearRoute(reportPosition, selectedRoute)) {
-        String reportType = doc['type'];
-        String reportUser = doc['user'] ?? 'Usuario desconocido';
-        DateTime reportTimestamp = (doc['timestamp'] as Timestamp).toDate();
-        String reportDate = '${reportTimestamp.day}/${reportTimestamp.month}/${reportTimestamp.year}';
-        String reportTime = '${reportTimestamp.hour}:${reportTimestamp.minute}';
-
-        // Determina el color del marcador y del círculo basado en el tipo de reporte
-        double markerHue;
-        Color circleColor;
-
-        if (reportType == 'Mala iluminación') {
-          markerHue = BitmapDescriptor.hueYellow;
-          circleColor = const Color.fromARGB(255, 206, 198, 124).withOpacity(0.3);
-        } else if (reportType == 'Inseguridad') {
-          markerHue = BitmapDescriptor.hueViolet;
-          circleColor = const Color.fromARGB(255, 101, 39, 176).withOpacity(0.3);
-        } else {
-          markerHue = BitmapDescriptor.hueRed;
-          circleColor = Colors.red.withOpacity(0.3);
-        }
-
-        Marker marker = Marker(
-          markerId: MarkerId('report_${doc.id}'),
-          position: reportPosition,
-          icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
-          infoWindow: InfoWindow(
-            title: reportType,
-            snippet: 'Creado por: $reportUser\nFecha: $reportDate\nHora: $reportTime',
-          ),
-        );
-
-        Circle circle = Circle(
-          circleId: CircleId('danger_area_${doc.id}'),
-          center: reportPosition,
-          radius: 20,
-          fillColor: circleColor,
-          strokeColor: circleColor.withOpacity(0.6),
-          strokeWidth: 2,
-        );
-
-        markers.add(marker);
-        circles.add(circle);
-      }
-    }
-
-    // Llamar al callback para actualizar la UI después de cambiar los marcadores y círculos
-    updateUI?.call();
+    mapUIService.updateMarkersAndCircles(
+      querySnapshot,
+      markers,
+      circles,
+      routes,
+      selectedRouteIndex,
+      updateUI!,
+    );
   }
 
 // Función para verificar si un punto está cerca de la ruta seleccionada
   bool _isNearRoute(LatLng reportPosition, List<LatLng> route) {
     const double proximityThreshold = 50.0;
     for (var point in route) {
-      if (_calculateDistance(reportPosition, point) <= proximityThreshold) {
+      if (calculateDistanceUseCase.execute(reportPosition, point) <= proximityThreshold) {
         return true;
       }
     }
@@ -186,14 +128,8 @@ class MapController {
   }
 
   void _listenToReportChanges() {
-    // Cancela la suscripción anterior si existe
     reportsSubscription?.cancel();
-
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    CollectionReference reports = firestore.collection('reports');
-
-    // Escucha cambios en tiempo real en la colección 'reports'
-    reportsSubscription = reports.snapshots().listen((snapshot) {
+    reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) {
       _updateMarkersAndCircles(snapshot);
     });
   }
@@ -225,46 +161,25 @@ class MapController {
   int _countReportsNearRoute(List<LatLng> route) {
     int reportCount = 0;
     const double proximityThreshold = 50.0;
-    Set<String> countedMarkers = {};
 
     for (var point in route) {
       for (var marker in markers) {
-        if (countedMarkers.contains(marker.markerId.value)) continue;
-        if (_calculateDistance(point, marker.position) <= proximityThreshold) {
+        if (calculateDistanceUseCase.execute(point, marker.position) <= proximityThreshold) {
           reportCount++;
-          countedMarkers.add(marker.markerId.value);
         }
       }
     }
     return reportCount;
   }
 
-  double _calculateDistance(LatLng point1, LatLng point2) {
-    const double earthRadius = 6371000;
-    double dLat = (point2.latitude - point1.latitude) * (math.pi / 180);
-    double dLon = (point2.longitude - point1.longitude) * (math.pi / 180);
-    double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(point1.latitude * (math.pi / 180)) *
-            math.cos(point2.latitude * (math.pi / 180)) *
-            math.sin(dLon / 2) * math.sin(dLon / 2);
-    double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-    return earthRadius * c;
-  }
-
   Future<void> logout(BuildContext context) async {
     try {
-      await FirebaseAuth.instance.signOut();
-      // Eliminar UID de SharedPreferences
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('userUID');
-
-      // Redirigir a la pantalla de inicio de sesión
+      await userService.logout(context);
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
       );
     } catch (e) {
-      print('Error al cerrar sesión: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al cerrar sesión')),
       );

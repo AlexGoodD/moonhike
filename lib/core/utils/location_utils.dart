@@ -1,27 +1,26 @@
 //Este archivo contiene los permisos necesarios para la utilidades de locación
 
-import 'package:geolocator/geolocator.dart';
+import 'package:moonhike/imports.dart';
 
-class LocationUtils {
-  static Future<Position> getUserLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      await Geolocator.openLocationSettings();
-      return Future.error('Location services are disabled.');
-    }
+class LocationService {
+  LatLng? currentPosition;
+  StreamSubscription<Position>? positionStream;
 
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return Future.error('Location permission denied.');
-      }
-    }
+  // Inicia la actualización de la ubicación
+  Future<void> startLocationUpdates(Function(LatLng) onPositionUpdate) async {
+    positionStream = Geolocator.getPositionStream(
+      locationSettings: LocationSettings(
+        accuracy: LocationAccuracy.high,
+        distanceFilter: 10,
+      ),
+    ).listen((Position position) {
+      currentPosition = LatLng(position.latitude, position.longitude);
+      onPositionUpdate(currentPosition!);
+    });
+  }
 
-    if (permission == LocationPermission.deniedForever) {
-      return Future.error('Location permission permanently denied.');
-    }
-
-    return await Geolocator.getCurrentPosition();
+  // Cancela la suscripción de la actualización de la ubicación
+  void stopLocationUpdates() {
+    positionStream?.cancel();
   }
 }

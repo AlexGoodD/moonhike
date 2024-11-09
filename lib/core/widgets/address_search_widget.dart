@@ -1,11 +1,9 @@
 /*Este es el widget de la barra de búsqueda que usa la API de Google Places para autocompletar las
 direcciones. Está en la capa de presentación, porque es un componente de interfaz de usuario.*/
 
-import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:moonhike/imports.dart';
 
 class AddressSearchWidget extends StatefulWidget {
   final Function(LatLng) onLocationSelected;
@@ -38,9 +36,9 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   }
 
   void _getSuggestions(String input) async {
+    final String apiKey = ApiKeys.googleMapsApiKey;
     if (_currentPosition == null) return; // Asegúrate de que la ubicación esté disponible
 
-    final String apiKey = 'AIzaSyDNHOPdlWDOqsFiL9_UQCkg2fnlpyww6A4'; // Tu API Key
     final String locationBias =
         '${_currentPosition!.latitude},${_currentPosition!.longitude}';
     final String url =
@@ -61,7 +59,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   }
 
   void _getLatLngFromPlaceId(String placeId) async {
-    final String apiKey = 'AIzaSyDNHOPdlWDOqsFiL9_UQCkg2fnlpyww6A4'; // Tu API Key
+    final String apiKey = ApiKeys.googleMapsApiKey;
     final String url =
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$apiKey';
 

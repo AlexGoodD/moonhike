@@ -2,12 +2,12 @@
 
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:moonhike/imports.dart';
 
 class RouteService {
   final String apiKey;
 
-  RouteService(this.apiKey);
+  RouteService() : apiKey = ApiKeys.googleMapsApiKey;
 
   Future<List<List<LatLng>>> getRoutes(LatLng start, LatLng end) async {
     final url = Uri.parse(

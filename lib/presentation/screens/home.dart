@@ -17,32 +17,64 @@ class _MapScreenState extends State<MapScreen> {
   void initState() {
     super.initState();
 
-    // Initialize the services and controller
-    routeService = RouteService('AIzaSyDNHOPdlWDOqsFiL9_UQCkg2fnlpyww6A4');
+    // Inicializar los servicios y controlador
+    routeService = RouteService();
     routeRepository = RouteRepository(routeService);
     mapController = MapController(routeRepository: routeRepository);
 
-    // Set callback to update UI
+    // Establecer el callback para actualizar la UI
     mapController.setUpdateUICallback(() {
       setState(() {});
     });
 
-    // Start location updates
+    // Inicializar el controlador y verificar permisos de ubicación
     mapController.init();
-    mapController.startLocationUpdates((position) {
+    _checkLocationPermission();
+
+    // Iniciar la escucha de actualizaciones de ubicación
+    mapController.locationService.startLocationUpdates((position) {
       setState(() {
         mapController.controller?.animateCamera(CameraUpdate.newLatLng(position));
       });
     });
+  }
 
-    // Fetch current location manually if not set
-    if (mapController.currentPosition == null) {
-      Geolocator.getCurrentPosition().then((position) {
-        setState(() {
-          mapController.currentPosition = LatLng(position.latitude, position.longitude);
-          mapController.controller?.animateCamera(CameraUpdate.newLatLng(mapController.currentPosition!));
-        });
+  // Verifica y solicita permisos de ubicación, y mueve la cámara si es necesario
+  Future<void> _checkLocationPermission() async {
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return; // Permiso denegado, no continuar
+      }
+    }
+    if (permission == LocationPermission.deniedForever) {
+      return; // Permiso denegado permanentemente, no continuar
+    }
+    // Permiso concedido, mueve la cámara a la ubicación del usuario
+    _moveToUserLocation();
+  }
+
+  Future<void> _moveToUserLocation() async {
+    try {
+      Position position = await Geolocator.getCurrentPosition();
+      LatLng userLocation = LatLng(position.latitude, position.longitude);
+
+      setState(() {
+        mapController.locationService.currentPosition = userLocation;
       });
+
+      // Especifica el nivel de zoom al mover la cámara
+      double zoomLevel = 23.0; // Puedes ajustar este valor según tus necesidades
+
+      if (mapController.controller != null) {
+        mapController.controller!.animateCamera(
+          CameraUpdate.newLatLngZoom(userLocation, zoomLevel),
+        );
+      }
+    } catch (e) {
+      print('Error al obtener la ubicación del usuario: $e');
+      // Opcionalmente, muestra un mensaje de error
     }
   }
 
@@ -51,6 +83,7 @@ class _MapScreenState extends State<MapScreen> {
     mapController.dispose();
     super.dispose();
   }
+
 
   @override
   Widget build(BuildContext context) {
