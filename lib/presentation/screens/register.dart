@@ -26,10 +26,11 @@ class _RegisterPageState extends State<RegisterPage> {
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
-      // Si el registro es exitoso, redirige a la página principal
+
+      // Si el registro es exitoso, redirige a la página de inicio de sesión (Para verificar credenciales)
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MapScreen()),
+        MaterialPageRoute(builder: (context) => LoginPage()),
       );
     } on FirebaseAuthException catch (e) {
       setState(() {

@@ -57,6 +57,7 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _errorMessage = e.message ?? "Error desconocido";
       });
+      print('Error de autenticación: $e'); // Agrega esta línea para más detalles
     }
   }
 

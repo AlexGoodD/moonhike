@@ -76,6 +76,9 @@ class MapController {
       ));
     }
 
+    // Reinicia la suscripción a los reportes en tiempo real
+    _listenToReportChanges();
+
     // Llamar al callback para actualizar la UI
     updateUI?.call();
   }
@@ -90,12 +93,9 @@ class MapController {
       'type': reportType, // Guarda el tipo de reporte
       'note': note,       // Guarda la nota opcional
     });
-
     // Actualiza los marcadores según el tipo de reporte
     _updateMarkersAndCircles(await firestore.collection('reports').get());
   }
-
-
 
   Future<List<List<LatLng>>> getRoutes(LatLng start, LatLng end) async {
     // Usar RouteRepository para obtener las rutas
@@ -114,59 +114,81 @@ class MapController {
     markers.clear();
     circles.clear();
 
+    // Verificar que la ruta seleccionada esté definida
+    if (routes.isEmpty || selectedRouteIndex >= routes.length) return;
+
+    List<LatLng> selectedRoute = routes[selectedRouteIndex];
+
     for (var doc in querySnapshot.docs) {
       GeoPoint location = doc['location'];
       LatLng reportPosition = LatLng(location.latitude, location.longitude);
 
-      // Datos del reporte
-      String reportType = doc['type'];
-      String reportUser = doc['user'] ?? 'Usuario desconocido';
-      DateTime reportTimestamp = (doc['timestamp'] as Timestamp).toDate();
-      String reportDate = '${reportTimestamp.day}/${reportTimestamp.month}/${reportTimestamp.year}';
-      String reportTime = '${reportTimestamp.hour}:${reportTimestamp.minute}';
+      // Verifica si el reporte está cerca de la ruta seleccionada
+      if (_isNearRoute(reportPosition, selectedRoute)) {
+        String reportType = doc['type'];
+        String reportUser = doc['user'] ?? 'Usuario desconocido';
+        DateTime reportTimestamp = (doc['timestamp'] as Timestamp).toDate();
+        String reportDate = '${reportTimestamp.day}/${reportTimestamp.month}/${reportTimestamp.year}';
+        String reportTime = '${reportTimestamp.hour}:${reportTimestamp.minute}';
 
-      // Determina el color del marcador y del círculo basado en el tipo de reporte
-      double markerHue;
-      Color circleColor;
+        // Determina el color del marcador y del círculo basado en el tipo de reporte
+        double markerHue;
+        Color circleColor;
 
-      if (reportType == 'mala iluminación') {
-        markerHue = BitmapDescriptor.hueYellow;
-        circleColor = const Color.fromARGB(255, 206, 198, 124).withOpacity(0.3);
-      } else if (reportType == 'inseguridad') {
-        markerHue = BitmapDescriptor.hueViolet;
-        circleColor = const Color.fromARGB(255, 101, 39, 176).withOpacity(0.3);
-      } else {
-        markerHue = BitmapDescriptor.hueRed;
-        circleColor = Colors.red.withOpacity(0.3);
+        if (reportType == 'Mala iluminación') {
+          markerHue = BitmapDescriptor.hueYellow;
+          circleColor = const Color.fromARGB(255, 206, 198, 124).withOpacity(0.3);
+        } else if (reportType == 'Inseguridad') {
+          markerHue = BitmapDescriptor.hueViolet;
+          circleColor = const Color.fromARGB(255, 101, 39, 176).withOpacity(0.3);
+        } else {
+          markerHue = BitmapDescriptor.hueRed;
+          circleColor = Colors.red.withOpacity(0.3);
+        }
+
+        Marker marker = Marker(
+          markerId: MarkerId('report_${doc.id}'),
+          position: reportPosition,
+          icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
+          infoWindow: InfoWindow(
+            title: reportType,
+            snippet: 'Creado por: $reportUser\nFecha: $reportDate\nHora: $reportTime',
+          ),
+        );
+
+        Circle circle = Circle(
+          circleId: CircleId('danger_area_${doc.id}'),
+          center: reportPosition,
+          radius: 20,
+          fillColor: circleColor,
+          strokeColor: circleColor.withOpacity(0.6),
+          strokeWidth: 2,
+        );
+
+        markers.add(marker);
+        circles.add(circle);
       }
-
-      Marker marker = Marker(
-        markerId: MarkerId('report_${doc.id}'),
-        position: reportPosition,
-        icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
-        infoWindow: InfoWindow(
-          title: reportType,
-          snippet: 'Creado por: $reportUser\nFecha: $reportDate\nHora: $reportTime',
-        ),
-      );
-
-      Circle circle = Circle(
-        circleId: CircleId('danger_area_${doc.id}'),
-        center: reportPosition,
-        radius: 20,
-        fillColor: circleColor,
-        strokeColor: circleColor.withOpacity(0.6),
-        strokeWidth: 2,
-      );
-      markers.add(marker);
-      circles.add(circle);
     }
 
     // Llamar al callback para actualizar la UI después de cambiar los marcadores y círculos
     updateUI?.call();
   }
 
+// Función para verificar si un punto está cerca de la ruta seleccionada
+  bool _isNearRoute(LatLng reportPosition, List<LatLng> route) {
+    const double proximityThreshold = 50.0;
+    for (var point in route) {
+      if (_calculateDistance(reportPosition, point) <= proximityThreshold) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   void _listenToReportChanges() {
+    // Cancela la suscripción anterior si existe
+    reportsSubscription?.cancel();
+
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference reports = firestore.collection('reports');
 

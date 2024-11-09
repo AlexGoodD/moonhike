@@ -21,18 +21,18 @@ class _ReportDialogState extends State<ReportDialog> {
         children: [
           ListTile(
             leading: Icon(Icons.lightbulb),
-            title: Text('mala iluminación'),
-            onTap: () => widget.onReportTypeSelected('mala iluminación', note),
+            title: Text('Mala iluminación'),
+            onTap: () => widget.onReportTypeSelected('Mala iluminación', note),
           ),
           ListTile(
             leading: Icon(Icons.warning),
-            title: Text('inseguridad'),
-            onTap: () => widget.onReportTypeSelected('inseguridad', note),
+            title: Text('Inseguridad'),
+            onTap: () => widget.onReportTypeSelected('Inseguridad', note),
           ),
           ListTile(
             leading: Icon(Icons.directions_walk),
             title: Text('Interés peatonal'),
-            onTap: () => widget.onReportTypeSelected('interés peatonal', note),
+            onTap: () => widget.onReportTypeSelected('Interés peatonal', note),
           ),
           TextField(
             decoration: InputDecoration(labelText: 'Nota (opcional)'),
