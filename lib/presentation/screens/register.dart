@@ -8,6 +8,8 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
@@ -27,7 +29,18 @@ class _RegisterPageState extends State<RegisterPage> {
         password: _passwordController.text.trim(),
       );
 
-      // Si el registro es exitoso, redirige a la página de inicio de sesión (Para verificar credenciales)
+      // Obtener el UID del usuario
+      String uid = userCredential.user!.uid;
+
+      // Guardar los datos adicionales en Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      // Redirige a la página de inicio de sesión
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => LoginPage()),
@@ -50,8 +63,19 @@ class _RegisterPageState extends State<RegisterPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
+              controller: _nameController,
+              decoration: InputDecoration(labelText: 'Nombre Completo'),
+            ),
+            SizedBox(height: 10),
+            TextField(
               controller: _emailController,
               decoration: InputDecoration(labelText: 'Correo Electrónico'),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _phoneController,
+              decoration: InputDecoration(labelText: 'Número Telefónico'),
+              keyboardType: TextInputType.phone,
             ),
             SizedBox(height: 10),
             TextField(
