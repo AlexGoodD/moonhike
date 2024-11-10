@@ -14,6 +14,21 @@ class _MapScreenState extends State<MapScreen> {
   bool showStartRouteButton = false;
   LatLng? selectedLocation;
 
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    MapScreen(), // Página de inicio/mapa
+    //ReportsScreen(), // Página de reportes
+    //SettingsScreen(), // Página de configuración
+    ProfileScreen(), // Página de perfil
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -153,6 +168,10 @@ class _MapScreenState extends State<MapScreen> {
               ),
             ),
         ],
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }
