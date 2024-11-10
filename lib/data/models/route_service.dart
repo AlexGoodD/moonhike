@@ -26,6 +26,7 @@ class RouteService {
         return routes;
       } else {
         print('Error en la respuesta de la API: ${data['status']}');
+        print('Mensaje de error de la API: ${data['error_message'] ?? "No disponible"}');
         return [];
       }
     } else {

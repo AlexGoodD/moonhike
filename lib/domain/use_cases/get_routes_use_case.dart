@@ -1,5 +1,5 @@
 /*Este archivo contiene el caso de uso para obtener las rutas. Aquí es donde se gestiona la lógica de la aplicación
-para obtener las rutas desde el repositorio.*/
+para obtener las rutas desde el repositorio.
 import 'package:moonhike/imports.dart';
 
 class GetRoutesUseCase {
@@ -11,3 +11,4 @@ class GetRoutesUseCase {
     return repository.fetchRoutes(start, end);
   }
 }
+*/

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:moonhike/imports.dart';
 
 class MapController {
+  List<int> routeTimes = []; // Almacena tiempos estimados en minutos
   Completer<GoogleMapController> _mapControllerCompleter = Completer();
   GoogleMapController? controller;
   Set<Marker> markers = {};
@@ -12,6 +13,7 @@ class MapController {
   List<List<LatLng>> routes = [];
   int selectedRouteIndex = 0;
   VoidCallback? updateUI; // Callback para actualizar la UI
+  List<Map<String, dynamic>?> routeInfos = [];
 
   //Clases de otros archivos, hace funcionar la aplicación *NO BORRAR*
   final RouteRepository routeRepository;
@@ -20,6 +22,7 @@ class MapController {
   final UserService userService = UserService();
   final ReportsService reportsService = ReportsService();
   final MapUIService mapUIService = MapUIService(calculateDistanceUseCase: CalculateDistanceUseCase());
+  final DirectionsService directionsService = DirectionsService();
 
   MapController({required this.routeRepository});
 
@@ -42,10 +45,6 @@ class MapController {
 
   LatLng? get currentPosition => locationService.currentPosition; // Acceso a la posición actual
 
-  Future<void> _getUserEmail() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    userEmail = user?.email;
-  }
 
   // Nueva función para definir el callback de actualización de UI
   void setUpdateUICallback(VoidCallback callback) {
@@ -61,7 +60,16 @@ class MapController {
 
   Future<void> startRoutes(LatLng? destination) async {
     if (currentPosition == null || destination == null) return;
+
     routes = await getRoutes(currentPosition!, destination);
+    routeInfos.clear();
+
+    // Obtener tiempo y distancia de cada ruta usando Directions API
+    for (var route in routes) {
+      var info = await directionsService.getRouteInfo(currentPosition!, destination);
+      routeInfos.add(info);
+    }
+
     int safestRouteIndex = _getSafestRouteIndex();
     polylines.clear();
     selectRoute(safestRouteIndex);
@@ -69,21 +77,47 @@ class MapController {
 
   void selectRoute(int index) {
     selectedRouteIndex = index;
-    polylines.clear();
-    for (int i = 0; i < routes.length; i++) {
-      polylines.add(Polyline(
-        polylineId: PolylineId('route_$i'),
-        points: routes[i],
-        color: i == selectedRouteIndex ? Colors.blue : Colors.grey,
-        width: 5,
-      ));
-    }
+    polylines.clear(); // Limpiar todas las rutas
 
-    // Reinicia la suscripción a los reportes en tiempo real
-    _listenToReportChanges();
+    // Primero, dibuja todas las rutas no seleccionadas
+    for (int i = 0; i < routes.length; i++) {
+      if (i != selectedRouteIndex) {
+        polylines.add(Polyline(
+          polylineId: PolylineId('route_$i'),
+          points: routes[i],
+          color: Colors.grey, // Color gris para rutas no seleccionadas
+          width: 8, // Grosor menor para rutas no seleccionadas
+          patterns: [PatternItem.dot, PatternItem.gap(15)], // Estilo punteado
+        ));
+      }
+    }
 
     // Llamar al callback para actualizar la UI
     updateUI?.call();
+
+    // Luego, dibuja la ruta seleccionada al final para que esté en la capa superior
+    polylines.add(Polyline(
+      polylineId: PolylineId('selected_route'),
+      points: routes[selectedRouteIndex],
+      color: Colors.blue, // Color destacado para la ruta seleccionada
+      width: 8, // Grosor mayor para la ruta seleccionada
+      patterns: [PatternItem.dot, PatternItem.gap(15)], // Estilo punteado
+    ));
+    // Reinicia la suscripción a los reportes en tiempo real
+    _listenToReportChanges();
+  }
+
+  void onPolylineTapped(PolylineId polylineId) {
+    // Extrae el índice de la ruta tocada
+    int tappedIndex = int.parse(polylineId.value.split('_').last);
+
+    // Solo actualiza si la ruta seleccionada es diferente
+    if (tappedIndex != selectedRouteIndex) {
+      selectedRouteIndex = tappedIndex;
+      selectRoute(selectedRouteIndex);
+      // Llamar al callback para actualizar la UI
+      updateUI?.call();
+    }
   }
 
   Future<void> createReport(String reportType, String note) async {
@@ -114,17 +148,6 @@ class MapController {
       selectedRouteIndex,
       updateUI!,
     );
-  }
-
-// Función para verificar si un punto está cerca de la ruta seleccionada
-  bool _isNearRoute(LatLng reportPosition, List<LatLng> route) {
-    const double proximityThreshold = 50.0;
-    for (var point in route) {
-      if (calculateDistanceUseCase.execute(reportPosition, point) <= proximityThreshold) {
-        return true;
-      }
-    }
-    return false;
   }
 
   void _listenToReportChanges() {

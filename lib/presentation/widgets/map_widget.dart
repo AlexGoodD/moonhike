@@ -17,7 +17,7 @@ class MapWidget extends StatelessWidget {
       },
       markers: mapController.markers,
       circles: mapController.circles,
-      polylines: mapController.polylines,
+      polylines: mapController.polylines, // Asegúrate de incluir las polilíneas aquí
       myLocationEnabled: true,
       myLocationButtonEnabled: true,
     );

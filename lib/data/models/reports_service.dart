@@ -13,6 +13,14 @@ class ReportsService {
     });
   }
 
+  Stream<List<Report>> getReports() {
+    return firestore.collection('reports').snapshots().map((snapshot) {
+      List<Report> reports = snapshot.docs.map((doc) => Report.fromFirestore(doc.data() as Map<String, dynamic>)).toList();
+      print("Número de reportes obtenidos de Firestore: ${reports.length}");
+      return reports;
+    });
+  }
+
   Stream<QuerySnapshot> listenToReportChanges() {
     return firestore.collection('reports').snapshots();
   }

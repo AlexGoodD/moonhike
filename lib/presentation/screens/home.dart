@@ -1,4 +1,5 @@
 import 'package:moonhike/imports.dart';
+import '../widgets/route_info_tab.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -20,7 +21,11 @@ class _MapScreenState extends State<MapScreen> {
     // Inicializar los servicios y controlador
     routeService = RouteService();
     routeRepository = RouteRepository(routeService);
-    mapController = MapController(routeRepository: routeRepository);
+
+    // Inicializar `MapController` con `routeManager`
+    mapController = MapController(
+      routeRepository: routeRepository,
+    );
 
     // Establecer el callback para actualizar la UI
     mapController.setUpdateUICallback(() {
@@ -45,13 +50,12 @@ class _MapScreenState extends State<MapScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        return; // Permiso denegado, no continuar
+        return;
       }
     }
     if (permission == LocationPermission.deniedForever) {
-      return; // Permiso denegado permanentemente, no continuar
+      return;
     }
-    // Permiso concedido, mueve la cámara a la ubicación del usuario
     _moveToUserLocation();
   }
 
@@ -64,8 +68,7 @@ class _MapScreenState extends State<MapScreen> {
         mapController.locationService.currentPosition = userLocation;
       });
 
-      // Especifica el nivel de zoom al mover la cámara
-      double zoomLevel = 23.0; // Puedes ajustar este valor según tus necesidades
+      double zoomLevel = 15.0;
 
       if (mapController.controller != null) {
         mapController.controller!.animateCamera(
@@ -74,7 +77,6 @@ class _MapScreenState extends State<MapScreen> {
       }
     } catch (e) {
       print('Error al obtener la ubicación del usuario: $e');
-      // Opcionalmente, muestra un mensaje de error
     }
   }
 
@@ -84,49 +86,10 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text('MoonHike')),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Bienvenido', style: TextStyle(color: Colors.white, fontSize: 24)),
-                  SizedBox(height: 10),
-                  if (mapController.userEmail != null)
-                    Text(mapController.userEmail!,
-                        style: TextStyle(color: Colors.white, fontSize: 16)),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.home),
-              title: Text('Perfil'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => ProfileScreen()),
-                );
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout),
-              title: Text('Cerrar Sesión'),
-              onTap: () async {
-                await mapController.logout(context);
-              },
-            ),
-          ],
-        ),
-      ),
       body: Stack(
         children: [
           MapWidget(mapController: mapController),
@@ -151,9 +114,10 @@ class _MapScreenState extends State<MapScreen> {
               onStartRoute: () async {
                 try {
                   await mapController.startRoutes(selectedLocation);
-                  setState(() {}); // Fuerza la actualización de la UI
+                  setState(() {});
                 } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error al iniciar la ruta: $e')));
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al iniciar la ruta: $e')));
                 }
               },
               onCreateReport: () async {
@@ -162,9 +126,9 @@ class _MapScreenState extends State<MapScreen> {
                   builder: (BuildContext context) {
                     return ReportDialog(
                       onReportTypeSelected: (String reportType, String note) async {
-                        Navigator.of(context).pop(); // Cierra el diálogo
+                        Navigator.of(context).pop();
                         try {
-                          await mapController.createReport(reportType, note); // Envía el tipo de reporte y la nota al controlador
+                          await mapController.createReport(reportType, note);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error al crear reporte: $e')),
@@ -178,6 +142,16 @@ class _MapScreenState extends State<MapScreen> {
               showStartRouteButton: showStartRouteButton,
             ),
           ),
+          if (mapController.routes.isNotEmpty)
+            Positioned(
+              bottom: 600,
+              left: 20,
+              right: 20,
+              child: RouteInfoTab(
+                duration: mapController.routeInfos[mapController.selectedRouteIndex]?['duration'],
+                distance: mapController.routeInfos[mapController.selectedRouteIndex]?['distance'],
+              ),
+            ),
         ],
       ),
     );
