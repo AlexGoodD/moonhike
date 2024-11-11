@@ -171,7 +171,39 @@ class _MapScreenState extends State<MapScreen> {
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        onTap: (int index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+
+          // Navegación a la página correspondiente
+          switch (index) {
+            case 0:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MapScreen()), // Reemplaza por la navegación adecuada si es necesario
+              );
+              break;
+            case 1:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ReportsScreen()),
+              );
+              break;
+            case 2:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+              break;
+            case 3:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
+              break;
+          }
+        },
       ),
     );
   }

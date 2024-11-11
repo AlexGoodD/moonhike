@@ -1,4 +1,5 @@
-//Este archivo contiene la pantalla de detalles del perfil
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:moonhike/imports.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -7,90 +8,89 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool isEditing = false;
-  TextEditingController nameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  String originalName = 'Nombre del Usuario';
-  String? _userEmail;
+  final User? user = FirebaseAuth.instance.currentUser; // Usuario autenticado
+  int _selectedIndex = 3; // Índice de la pantalla actual (Perfil)
+  Map<String, dynamic>? userData; // Variable para almacenar los datos del usuario de Firestore
+  bool isLoading = true; // Bandera para controlar la carga
 
   @override
   void initState() {
     super.initState();
-    nameController.text = originalName;
-    _getUserEmail(); // Llamamos al método para obtener el correo del usuario
+    _fetchUserData(); // Llama a la función para obtener los datos de Firestore
   }
 
-  // Método para obtener el correo del usuario y establecerlo en el controlador de email
-  void _getUserEmail() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    setState(() {
-      _userEmail = user?.email;
-      if (_userEmail != null) {
-        emailController.text = _userEmail!; // Asigna el email del usuario al TextField
+  Future<void> _fetchUserData() async {
+    try {
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user!.uid)
+            .get();
+
+        if (userDoc.exists) {
+          print("Datos del usuario obtenidos: ${userDoc.data()}"); // Depuración
+          if (mounted) {
+            setState(() {
+              userData = userDoc.data() as Map<String, dynamic>?;
+              isLoading = false; // Termina la carga cuando los datos se obtienen
+            });
+          }
+        } else {
+          print("Documento del usuario no encontrado."); // Depuración
+          if (mounted) {
+            setState(() {
+              isLoading = false;
+              userData = {
+                'name': 'Nombre no disponible',
+                'email': user!.email ?? 'Correo no disponible',
+                'phone': 'Número no disponible'
+              };
+            });
+          }
+        }
       }
+    } catch (e) {
+      print("Error al obtener los datos de Firestore: $e"); // Depuración
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar los datos del usuario: $e')),
+      );
+    }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
     });
-  }
 
-  void _showSaveDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Guardar cambios'),
-          content: Text('¿Deseas guardar los cambios?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  originalName = nameController.text;
-                  _userEmail = emailController.text;
-                  isEditing = false;
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Guardar'),
-            ),
-          ],
+    // Navegación a la página correspondiente
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MapScreen()),
         );
-      },
-    );
-  }
-
-  void _showCancelDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Cancelar edición'),
-          content: Text('¿Estás seguro de que deseas cancelar sin guardar los cambios?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('No'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  nameController.text = originalName;
-                  emailController.text = _userEmail!;
-                  isEditing = false;
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Sí'),
-            ),
-          ],
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ReportsScreen()),
         );
-      },
-    );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SettingsScreen()),
+        );
+        break;
+      case 3:
+        // Ya estás en la pantalla de perfil
+        break;
+    }
   }
 
   @override
@@ -98,114 +98,139 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Perfil'),
-        backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pushReplacementNamed(context, '/login'); // Redirige a la página de login
+            },
+          ),
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Muestra un indicador de carga mientras se obtienen los datos
+          : userData == null
+              ? Center(child: Text('No se encontraron datos del usuario.'))
+              : SingleChildScrollView(
+                  padding: EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      // Foto de perfil y nombre
+                      Card(
+                        elevation: 4.0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12.0),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 50.0,
+                                backgroundImage: NetworkImage(
+                                    user?.photoURL ?? 'https://via.placeholder.com/150'), // Placeholder si no hay foto
+                              ),
+                              SizedBox(height: 10),
+                              Text(
+                                userData?['name'] ?? 'Nombre del Usuario',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                userData?['email'] ?? 'correo@ejemplo.com',
+                                style: TextStyle(
+                                  color: Colors.grey[700],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
+
+                      // Contadores de actividad
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _buildActivityCard(Icons.location_on, 'Reportes', '13'),
+                          _buildActivityCard(Icons.nights_stay, 'Días activos', '125'),
+                        ],
+                      ),
+                      SizedBox(height: 20),
+
+                      // Botones de configuración
+                      _buildSettingsButton(
+                        context,
+                        icon: Icons.settings,
+                        title: 'Configuración de cuenta',
+                        subtitle: 'Actualiza y edita tu información personal',
+                      ),
+                      _buildSettingsButton(
+                        context,
+                        icon: Icons.lock,
+                        title: 'Privacidad',
+                        subtitle: 'Cambia tu contraseña',
+                      ),
+                      _buildSettingsButton(
+                        context,
+                        icon: Icons.share,
+                        title: 'Invita a un amigo/a',
+                        subtitle: 'Comparte la experiencia MoonHike!',
+                      ),
+                    ],
+                  ),
+                ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+
+  // Método para crear las cartas de actividad
+  Widget _buildActivityCard(IconData icon, String label, String count) {
+    return Card(
+      elevation: 4.0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Container(
+        width: 120.0,
+        padding: EdgeInsets.all(16.0),
         child: Column(
-          children: <Widget>[
-            CircleAvatar(
-              radius: 60.0,
-              backgroundImage: NetworkImage('https://via.placeholder.com/150'),
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 30, color: Colors.purple),
+            SizedBox(height: 8.0),
+            Text(
+              label,
+              style: TextStyle(fontSize: 14, color: Colors.grey[700]),
             ),
-            SizedBox(height: 20.0),
-            isEditing ? _buildEditableFields() : _buildProfileDetails(),
-            SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    if (isEditing) {
-                      _showSaveDialog();
-                    } else {
-                      setState(() {
-                        isEditing = true;
-                      });
-                    }
-                  },
-                  icon: Icon(isEditing ? Icons.save : Icons.edit),
-                  label: Text(isEditing ? 'Guardar cambios' : 'Editar perfil'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-                if (isEditing)
-                  SizedBox(width: 10.0),
-                if (isEditing)
-                  ElevatedButton.icon(
-                    onPressed: _showCancelDialog,
-                    icon: Icon(Icons.cancel),
-                    label: Text('Cancelar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-              ],
+            Text(
+              count,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-            if (!isEditing) ...[
-              SizedBox(height: 20.0),
-              ElevatedButton.icon(
-                onPressed: () {
-                  print('Cerrar sesión');
-                },
-                icon: Icon(Icons.logout),
-                label: Text('Cerrar sesión'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
-              ),
-            ],
           ],
         ),
       ),
     );
   }
 
-  Widget _buildProfileDetails() {
-    return Column(
-      children: [
-        Text(
-          nameController.text,
-          style: TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        SizedBox(height: 8.0),
-        Text(
-          emailController.text,
-          style: TextStyle(
-            fontSize: 16.0,
-            color: Colors.grey[700],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEditableFields() {
-    return Column(
-      children: [
-        TextField(
-          controller: nameController,
-          decoration: InputDecoration(
-            labelText: 'Nombre',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        SizedBox(height: 10.0),
-        TextField(
-          controller: emailController,
-          decoration: InputDecoration(
-            labelText: 'Correo electrónico',
-            border: OutlineInputBorder(),
-          ),
-        ),
-      ],
+  // Método para crear los botones de configuración
+  Widget _buildSettingsButton(BuildContext context,
+      {required IconData icon, required String title, required String subtitle}) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.purple),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+      onTap: () {
+        // Acción cuando se presiona el botón
+      },
     );
   }
 }

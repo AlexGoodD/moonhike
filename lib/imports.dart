@@ -40,13 +40,15 @@ export 'package:moonhike/presentation/screens/home.dart';
 export 'package:moonhike/presentation/screens/login.dart';
 export 'package:moonhike/presentation/screens/map_controller.dart';
 export 'package:moonhike/presentation/screens/profile_screen.dart';
+export 'package:moonhike/presentation/screens/reports.dart';
+export 'package:moonhike/presentation/screens/settings.dart';
 export 'package:moonhike/presentation/screens/register.dart';
 export 'package:moonhike/presentation/widgets/floating_action_buttons.dart';
 export 'package:moonhike/presentation/widgets/map_widget.dart';
 export 'package:moonhike/presentation/widgets/route_selection_widget.dart';
 export 'package:moonhike/presentation/widgets/report_dialog.dart';
 export 'package:moonhike/presentation/widgets/map_ui_service.dart';
-import 'package:moonhike/presentation/widgets/route_info_tab.dart';
+export 'package:moonhike/presentation/widgets/route_info_tab.dart';
 
 
 

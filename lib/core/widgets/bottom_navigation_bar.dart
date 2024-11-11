@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:moonhike/imports.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -14,7 +13,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
-      onTap: onTap,
+      onTap: (int index) {
+        onTap(index); // Llama a la función de callback 'onTap' para actualizar el índice
+      },
       type: BottomNavigationBarType.fixed,
       items: [
         BottomNavigationBarItem(
