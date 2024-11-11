@@ -32,7 +32,6 @@ export 'package:moonhike/data/models/reports.dart';
 export 'package:moonhike/domain/entities/route_entity.dart';
 export 'package:moonhike/domain/use_cases/calculate_distance_use_case.dart';
 export 'package:moonhike/domain/use_cases/get_routes_use_case.dart';
-export 'package:moonhike/domain/use_cases/calculate_route_time_use_case.dart';
 
 
 //Presentation

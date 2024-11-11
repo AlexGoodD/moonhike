@@ -139,6 +139,8 @@ class _MapScreenState extends State<MapScreen> {
                   },
                 );
               },
+              onPreviousRoute: mapController.showPreviousRoute,
+              onNextRoute: mapController.showNextRoute,
               showStartRouteButton: showStartRouteButton,
             ),
           ),

@@ -9,6 +9,7 @@ class MapController {
   Set<Circle> circles = {};
   Set<Polyline> polylines = {};
   String? userEmail;
+  LatLng? lastDestination; // Último destino mostrado
   StreamSubscription<QuerySnapshot>? reportsSubscription; // Listener para cambios en Firestore
   List<List<LatLng>> routes = [];
   int selectedRouteIndex = 0;
@@ -61,14 +62,18 @@ class MapController {
   Future<void> startRoutes(LatLng? destination) async {
     if (currentPosition == null || destination == null) return;
 
+    // Verifica si el destino ha cambiado antes de volver a cargar las rutas
+    if (lastDestination != null && lastDestination == destination) {
+      print("Destino sin cambios; no se cargan nuevas rutas.");
+      return;
+    }
+
+    // Actualiza el último destino
+    lastDestination = destination;
+
+    // Obtén las rutas desde el repositorio
     routes = await getRoutes(currentPosition!, destination);
     routeInfos.clear();
-
-    // Obtener tiempo y distancia de cada ruta usando Directions API
-    for (var route in routes) {
-      var info = await directionsService.getRouteInfo(currentPosition!, destination);
-      routeInfos.add(info);
-    }
 
     int safestRouteIndex = _getSafestRouteIndex();
     polylines.clear();
@@ -86,37 +91,40 @@ class MapController {
           polylineId: PolylineId('route_$i'),
           points: routes[i],
           color: Colors.grey, // Color gris para rutas no seleccionadas
-          width: 8, // Grosor menor para rutas no seleccionadas
+          width: 6, // Grosor menor para rutas no seleccionadas
           patterns: [PatternItem.dot, PatternItem.gap(15)], // Estilo punteado
         ));
       }
     }
-
-    // Llamar al callback para actualizar la UI
-    updateUI?.call();
 
     // Luego, dibuja la ruta seleccionada al final para que esté en la capa superior
     polylines.add(Polyline(
       polylineId: PolylineId('selected_route'),
       points: routes[selectedRouteIndex],
       color: Colors.blue, // Color destacado para la ruta seleccionada
-      width: 8, // Grosor mayor para la ruta seleccionada
+      width: 10, // Grosor mayor para la ruta seleccionada
       patterns: [PatternItem.dot, PatternItem.gap(15)], // Estilo punteado
     ));
+
+    // Llama al callback para actualizar la UI
+    updateUI?.call();
+
     // Reinicia la suscripción a los reportes en tiempo real
     _listenToReportChanges();
   }
 
-  void onPolylineTapped(PolylineId polylineId) {
-    // Extrae el índice de la ruta tocada
-    int tappedIndex = int.parse(polylineId.value.split('_').last);
-
-    // Solo actualiza si la ruta seleccionada es diferente
-    if (tappedIndex != selectedRouteIndex) {
-      selectedRouteIndex = tappedIndex;
+  // Métodos para navegar entre las rutas
+  void showNextRoute() {
+    if (routes.isNotEmpty) {
+      selectedRouteIndex = (selectedRouteIndex + 1) % routes.length;
       selectRoute(selectedRouteIndex);
-      // Llamar al callback para actualizar la UI
-      updateUI?.call();
+    }
+  }
+
+  void showPreviousRoute() {
+    if (routes.isNotEmpty) {
+      selectedRouteIndex = (selectedRouteIndex - 1 + routes.length) % routes.length;
+      selectRoute(selectedRouteIndex);
     }
   }
 
