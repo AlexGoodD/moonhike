@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:moonhike/imports.dart';
 
 class CustomBottomNavigationBar extends StatelessWidget {
   final int currentIndex;
@@ -17,6 +17,9 @@ class CustomBottomNavigationBar extends StatelessWidget {
         onTap(index); // Llama a la función de callback 'onTap' para actualizar el índice
       },
       type: BottomNavigationBarType.fixed,
+      backgroundColor: paletteColors.secondColor, // Color de fondo de la barra
+      selectedItemColor: paletteColors.fourthColor, // Color de los íconos y texto seleccionados
+      unselectedItemColor: const Color.fromARGB(149, 153, 151, 188), // Color de los íconos y texto no seleccionados
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.home),
