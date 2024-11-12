@@ -14,6 +14,21 @@ class _MapScreenState extends State<MapScreen> {
   bool isInfoTabOpen = false; // Controla el estado de la pestaña de información
   LatLng? selectedLocation;
 
+  int _selectedIndex = 0;
+
+  final List<Widget> _pages = [
+    MapScreen(), // Página de inicio/mapa
+    //ReportsScreen(), // Página de reportes
+    //SettingsScreen(), // Página de configuración
+    ProfileScreen(), // Página de perfil
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   // Controlador para DraggableScrollableSheet
   final DraggableScrollableController _draggableController = DraggableScrollableController();
 
@@ -173,6 +188,42 @@ class _MapScreenState extends State<MapScreen> {
               },
             ),*/
         ],
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: (int index) {
+          setState(() {
+            _selectedIndex = index;
+          });
+
+          // Navegación a la página correspondiente
+          switch (index) {
+            case 0:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => MapScreen()), 
+              );
+              break;
+            case 1:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ReportsScreen()),
+              );
+              break;
+            case 2:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => SettingsScreen()),
+              );
+              break;
+            case 3:
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => ProfileScreen()),
+              );
+              break;
+          }
+        },
       ),
     );
   }
