@@ -17,7 +17,18 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
+      home: FutureBuilder(
+        future: FirebaseAuth.instance.authStateChanges().first,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator()); // Cargando
+          } else if (snapshot.hasData) {
+            return MapScreen(); // Usuario autenticado, va a la pantalla principal
+          } else {
+            return LoginPage(); // No autenticado, va a la pantalla de login
+          }
+        },
+      ),
     );
   }
 }

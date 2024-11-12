@@ -21,7 +21,19 @@ class _LoginPageState extends State<LoginPage> {
   @override
   void initState() {
     super.initState();
-    _checkLoginStatus();
+    _checkFirebaseAuthStatus();
+  }
+
+  Future<void> _checkFirebaseAuthStatus() async {
+    User? currentUser = _auth.currentUser;
+
+    if (currentUser != null) {
+      // Si hay un usuario autenticado, redirige a MapScreen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => MapScreen()),
+      );
+    }
   }
 
   Future<void> _checkLoginStatus() async {
