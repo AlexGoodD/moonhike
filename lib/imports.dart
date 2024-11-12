@@ -32,7 +32,7 @@ export 'package:moonhike/data/models/reports.dart';
 export 'package:moonhike/domain/entities/route_entity.dart';
 export 'package:moonhike/domain/use_cases/calculate_distance_use_case.dart';
 export 'package:moonhike/domain/use_cases/get_routes_use_case.dart';
-
+export 'package:moonhike/domain/use_cases/route_risk_calculator.dart';
 
 //Presentation
 export 'package:moonhike/presentation/screens/map_screen.dart';
@@ -46,6 +46,7 @@ export 'package:moonhike/presentation/widgets/report_dialog.dart';
 export 'package:moonhike/presentation/widgets/map_ui_service.dart';
 export 'package:moonhike/presentation/widgets/route_info_tab.dart';
 export 'package:moonhike/presentation/widgets/select_route.dart';
+export 'package:moonhike/presentation/utils/map_utils.dart';
 
 
 

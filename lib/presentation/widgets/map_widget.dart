@@ -14,10 +14,11 @@ class MapWidget extends StatelessWidget {
       ),
       onMapCreated: (GoogleMapController controller) {
         mapController.controller = controller;
+        MapUtils.setMapController(mapController.mapControllerCompleter, controller);
       },
       markers: mapController.markers,
       circles: mapController.circles,
-      polylines: mapController.polylines, // Asegúrate de incluir las polilíneas aquí
+      polylines: mapController.polylines,
       myLocationEnabled: true,
       myLocationButtonEnabled: true,
     );

@@ -1,18 +1,18 @@
 import 'package:moonhike/imports.dart';
 
 class MapController {
-  List<int> routeTimes = []; // Almacena tiempos estimados en minutos
-  List<double> _routeRiskScores = [];
-  Completer<GoogleMapController> _mapControllerCompleter = Completer();
+  //List<int> routeTimes = []; //Tiempo de rutas
+  List<double> _routeRiskScores = []; //Calificacion de rutas
+  Completer<GoogleMapController> mapControllerCompleter = Completer(); // Eliminamos el "_"
   GoogleMapController? controller;
   Set<Marker> markers = {};
   Set<Circle> circles = {};
   Set<Polyline> polylines = {};
-  String? userEmail;
-  LatLng? lastDestination; // Último destino mostrado
+  String? userEmail; //Email del usuario
+  LatLng? lastDestination; //Ultima ruta (para evitar las presiones repetidas)
   StreamSubscription<QuerySnapshot>? reportsSubscription; // Listener para cambios en Firestore
   List<List<LatLng>> routes = [];
-  int selectedRouteIndex = 0;
+  int selectedRouteIndex = 0; //Selector de rutas
   VoidCallback? updateUI; // Callback para actualizar la UI
   List<Map<String, dynamic>?> routeInfos = [];
 
@@ -24,6 +24,7 @@ class MapController {
   final ReportsService reportsService = ReportsService();
   final MapUIService mapUIService = MapUIService(calculateDistanceUseCase: CalculateDistanceUseCase());
   final DirectionsService directionsService = DirectionsService();
+  final RouteRiskCalculator routeRiskCalculator = RouteRiskCalculator();
 
   MapController({required this.routeRepository});
 
@@ -56,10 +57,7 @@ class MapController {
   }
 
   Future<void> setMapController(GoogleMapController controller) async {
-    this.controller = controller;
-    if (!_mapControllerCompleter.isCompleted) {
-      _mapControllerCompleter.complete(controller);
-    }
+    await MapUtils.setMapController(mapControllerCompleter, controller);
   }
 
   Future<void> loadReports() async {
@@ -100,7 +98,7 @@ class MapController {
     double lowestRiskScore = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
-      double riskScore = _calculateRouteRisk(routes[i]);
+      double riskScore = routeRiskCalculator.calculateRouteRisk(routes[i], markers);
       riskScores.add(riskScore);
 
       if (riskScore < lowestRiskScore) {
@@ -108,7 +106,7 @@ class MapController {
         safestRouteIndex = i;
       }
 
-      Color routeColor = _getRouteColor(riskScore);
+      Color routeColor = routeRiskCalculator.getRouteColor(riskScore);
 
       polylines.add(Polyline(
         polylineId: PolylineId('route_$i'),
@@ -119,40 +117,25 @@ class MapController {
       ));
     }
     _routeRiskScores = riskScores;
-    selectedRouteIndex = safestRouteIndex; // Selecciona la ruta más segura para mostrar primero
-    updateUI?.call(); // Actualiza la UI después de clasificar
+    selectedRouteIndex = safestRouteIndex;
+    updateUI?.call();
   }
 
-  double _calculateRouteRisk(List<LatLng> route) {
-    const double proximityThreshold = 50.0; // Distancia en metros para considerar un reporte cercano
-    double riskScore = 0;
-
-    for (LatLng point in route) {
-      for (Marker marker in markers) {
-        if (calculateDistanceUseCase.execute(point, marker.position) <= proximityThreshold) {
-          // Suma puntos de riesgo según el tipo de reporte
-          if (marker.infoWindow.title == "Mala iluminación") {
-            riskScore += 3;
-          } else if (marker.infoWindow.title == "Inseguridad") {
-            riskScore += 5;
-          } else if (marker.infoWindow.title == "Poca vialidad peatonal") {
-            riskScore += 4;
-          }
-        }
-      }
-    }
-    return riskScore;
+  Future<void> updateRouteColors() async {
+    polylines.clear();
+    routeRiskCalculator.updateRouteColors(
+      selectedRouteIndex: selectedRouteIndex,
+      routes: routes,
+      routeRiskScores: _routeRiskScores,
+      polylines: polylines,
+      updateUI: updateUI!,
+      markers: markers,
+    );
   }
 
-  Color _getRouteColor(double riskScore) {
-    if (riskScore < 10) {
-      return Colors.green; // Ruta segura
-    } else if (riskScore <= 20) {
-      return Colors.yellow; // Ruta intermedia
-    } else {
-      return Colors.red; // Ruta insegura
-    }
-  }
+  /*Función calculateRouteRisk migrada a route_risk_calculator*/
+
+  /*función getroutecolor migrada a route_risk_calculator*/
 
   Future<void> selectRoute(int index) async {
     selectedRouteIndex = index;
@@ -210,36 +193,6 @@ class MapController {
     updateUI?.call(); // Fuerza la actualización de la UI
   }
 
-  Future<void> updateRouteColors() async {
-    // Limpia los polylines actuales para una actualización completa
-    polylines.clear();
-
-    for (int i = 0; i < routes.length; i++) {
-      Color routeColor;
-
-      // Recalcula el color basado en el riesgo solo para la ruta seleccionada
-      if (i == selectedRouteIndex) {
-        double riskScore = _calculateRouteRisk(routes[i]);
-        routeColor = _getRouteColor(riskScore);
-        _routeRiskScores[i] = riskScore; // Asegura que el puntaje de riesgo esté actualizado
-      } else {
-        // Rutas no seleccionadas se muestran en gris
-        routeColor = Colors.grey;
-      }
-
-      // Añade el polyline de la ruta con el color correspondiente
-      polylines.add(Polyline(
-        polylineId: PolylineId('route_$i'),
-        points: routes[i],
-        color: routeColor,
-        width: i == selectedRouteIndex ? 10 : 6,
-        patterns: [PatternItem.dot, PatternItem.gap(15)],
-      ));
-    }
-
-    updateUI?.call(); // Refresca la UI después de la actualización de colores
-  }
-
   void _listenToReportChanges() {
     reportsSubscription?.cancel();
     reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) async {
@@ -250,12 +203,11 @@ class MapController {
   }
 
   void addMarkerForSelectedLocation(LatLng location) {
-    markers.add(Marker(
-      markerId: MarkerId('selectedLocation'),
-      position: location,
-      infoWindow: InfoWindow(title: 'Ubicación seleccionada'),
-    ));
-    controller?.animateCamera(CameraUpdate.newLatLng(location));
+    MapUtils.addMarkerForSelectedLocation(
+      markers: markers,
+      controller: controller!,
+      location: location,
+    );
   }
 
   Future<void> logout(BuildContext context) async {
