@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'package:moonhike/imports.dart';
 
 class MapController {
   List<int> routeTimes = []; // Almacena tiempos estimados en minutos
+  List<double> _routeRiskScores = [];
   Completer<GoogleMapController> _mapControllerCompleter = Completer();
   GoogleMapController? controller;
   Set<Marker> markers = {};
@@ -37,6 +37,9 @@ class MapController {
       // Lógica adicional que se necesite al actualizar la posición
       updateUI?.call();
     });
+
+    // Clasifica y selecciona la ruta más segura
+    _classifyAndDisplayRoutes();
   }
 
   void dispose() {
@@ -59,59 +62,105 @@ class MapController {
     }
   }
 
+  Future<void> loadReports() async {
+    FirebaseFirestore firestore = FirebaseFirestore.instance;
+    CollectionReference reports = firestore.collection('reports');
+    QuerySnapshot querySnapshot = await reports.get();
+
+    // Filtra los reportes de acuerdo a la ruta seleccionada antes de actualizar los marcadores y círculos
+    _updateMarkersAndCircles(querySnapshot);
+    updateUI?.call(); // Asegura que la UI se actualice con los reportes cargados
+  }
+
   Future<void> startRoutes(LatLng? destination) async {
     if (currentPosition == null || destination == null) return;
-
-    // Verifica si el destino ha cambiado antes de volver a cargar las rutas
     if (lastDestination != null && lastDestination == destination) {
       print("Destino sin cambios; no se cargan nuevas rutas.");
       return;
     }
 
-    // Actualiza el último destino
     lastDestination = destination;
-
-    // Obtén las rutas desde el repositorio
     routes = await getRoutes(currentPosition!, destination);
     routeInfos.clear();
 
-    int safestRouteIndex = _getSafestRouteIndex();
-    polylines.clear();
-    selectRoute(safestRouteIndex);
-  }
-
-  void selectRoute(int index) {
-    selectedRouteIndex = index;
-    polylines.clear(); // Limpiar todas las rutas
-
-    // Primero, dibuja todas las rutas no seleccionadas
-    for (int i = 0; i < routes.length; i++) {
-      if (i != selectedRouteIndex) {
-        polylines.add(Polyline(
-          polylineId: PolylineId('route_$i'),
-          points: routes[i],
-          color: Colors.grey, // Color gris para rutas no seleccionadas
-          width: 6, // Grosor menor para rutas no seleccionadas
-          patterns: [PatternItem.dot, PatternItem.gap(15)], // Estilo punteado
-        ));
-      }
+    for (var route in routes) {
+      var info = await directionsService.getRouteInfo(currentPosition!, destination);
+      routeInfos.add(info);
     }
 
-    // Luego, dibuja la ruta seleccionada al final para que esté en la capa superior
-    polylines.add(Polyline(
-      polylineId: PolylineId('selected_route'),
-      points: routes[selectedRouteIndex],
-      color: Colors.blue, // Color destacado para la ruta seleccionada
-      width: 10, // Grosor mayor para la ruta seleccionada
-      patterns: [PatternItem.dot, PatternItem.gap(15)], // Estilo punteado
-    ));
-
-    // Llama al callback para actualizar la UI
-    updateUI?.call();
-
-    // Reinicia la suscripción a los reportes en tiempo real
-    _listenToReportChanges();
+    await _classifyAndDisplayRoutes(); // Clasifica y selecciona las rutas antes de cargar reportes
+    await loadReports(); // Carga los reportes una vez clasificadas las rutas
+    updateUI?.call(); // Actualiza la UI después de clasificar y cargar los datos
   }
+
+  Future<void> _classifyAndDisplayRoutes() async {
+    polylines.clear();
+    List<double> riskScores = [];
+    int safestRouteIndex = 0;
+    double lowestRiskScore = double.infinity;
+
+    for (int i = 0; i < routes.length; i++) {
+      double riskScore = _calculateRouteRisk(routes[i]);
+      riskScores.add(riskScore);
+
+      if (riskScore < lowestRiskScore) {
+        lowestRiskScore = riskScore;
+        safestRouteIndex = i;
+      }
+
+      Color routeColor = _getRouteColor(riskScore);
+
+      polylines.add(Polyline(
+        polylineId: PolylineId('route_$i'),
+        points: routes[i],
+        color: routeColor,
+        width: 6,
+        patterns: [PatternItem.dot, PatternItem.gap(15)],
+      ));
+    }
+    _routeRiskScores = riskScores;
+    selectedRouteIndex = safestRouteIndex; // Selecciona la ruta más segura para mostrar primero
+    updateUI?.call(); // Actualiza la UI después de clasificar
+  }
+
+  double _calculateRouteRisk(List<LatLng> route) {
+    const double proximityThreshold = 50.0; // Distancia en metros para considerar un reporte cercano
+    double riskScore = 0;
+
+    for (LatLng point in route) {
+      for (Marker marker in markers) {
+        if (calculateDistanceUseCase.execute(point, marker.position) <= proximityThreshold) {
+          // Suma puntos de riesgo según el tipo de reporte
+          if (marker.infoWindow.title == "Mala iluminación") {
+            riskScore += 3;
+          } else if (marker.infoWindow.title == "Inseguridad") {
+            riskScore += 5;
+          } else if (marker.infoWindow.title == "Poca vialidad peatonal") {
+            riskScore += 4;
+          }
+        }
+      }
+    }
+    return riskScore;
+  }
+
+  Color _getRouteColor(double riskScore) {
+    if (riskScore < 10) {
+      return Colors.green; // Ruta segura
+    } else if (riskScore <= 20) {
+      return Colors.yellow; // Ruta intermedia
+    } else {
+      return Colors.red; // Ruta insegura
+    }
+  }
+
+  Future<void> selectRoute(int index) async {
+    selectedRouteIndex = index;
+    await updateRouteColors(); // Actualiza los colores para la ruta seleccionada
+    await loadReports(); // Carga y actualiza los reportes para la ruta seleccionada
+    updateUI?.call(); // Actualiza la interfaz
+  }
+
 
   // Métodos para navegar entre las rutas
   void showNextRoute() {
@@ -119,6 +168,7 @@ class MapController {
       selectedRouteIndex = (selectedRouteIndex + 1) % routes.length;
       selectRoute(selectedRouteIndex);
     }
+    updateUI?.call(); // Actualiza la UI después de clasificar
   }
 
   void showPreviousRoute() {
@@ -126,12 +176,17 @@ class MapController {
       selectedRouteIndex = (selectedRouteIndex - 1 + routes.length) % routes.length;
       selectRoute(selectedRouteIndex);
     }
+    updateUI?.call(); // Actualiza la UI después de clasificar
   }
 
+  // Crea un reporte y actualiza marcadores/círculos en tiempo real
   Future<void> createReport(String reportType, String note) async {
     if (currentPosition == null) return;
     await reportsService.createReport(userEmail!, currentPosition!, reportType, note);
-    _updateMarkersAndCircles(await reportsService.firestore.collection('reports').get());
+
+    // Escucha nuevamente los cambios de Firebase para actualizar en tiempo real
+    await loadReports();
+    updateUI?.call(); // Actualiza la interfaz en tiempo real
   }
 
   Future<List<List<LatLng>>> getRoutes(LatLng start, LatLng end) async {
@@ -139,29 +194,58 @@ class MapController {
     return await routeRepository.fetchRoutes(start, end);
   }
 
-  Future<void> loadReports() async {
-    FirebaseFirestore firestore = FirebaseFirestore.instance;
-    CollectionReference reports = firestore.collection('reports');
-    QuerySnapshot querySnapshot = await reports.get();
-
-    _updateMarkersAndCircles(querySnapshot);
-  }
-
+  // Método para actualizar los marcadores en tiempo real basado en los reportes
   void _updateMarkersAndCircles(QuerySnapshot querySnapshot) {
     mapUIService.updateMarkersAndCircles(
       querySnapshot,
       markers,
       circles,
       routes,
-      selectedRouteIndex,
+      selectedRouteIndex, // Aplica solo a la ruta seleccionada
       updateUI!,
     );
+
+    // Forzar la actualización de colores inmediatamente después de recibir cambios
+    updateRouteColors(); // Aplica el cambio de colores en tiempo real
+    updateUI?.call(); // Fuerza la actualización de la UI
+  }
+
+  Future<void> updateRouteColors() async {
+    // Limpia los polylines actuales para una actualización completa
+    polylines.clear();
+
+    for (int i = 0; i < routes.length; i++) {
+      Color routeColor;
+
+      // Recalcula el color basado en el riesgo solo para la ruta seleccionada
+      if (i == selectedRouteIndex) {
+        double riskScore = _calculateRouteRisk(routes[i]);
+        routeColor = _getRouteColor(riskScore);
+        _routeRiskScores[i] = riskScore; // Asegura que el puntaje de riesgo esté actualizado
+      } else {
+        // Rutas no seleccionadas se muestran en gris
+        routeColor = Colors.grey;
+      }
+
+      // Añade el polyline de la ruta con el color correspondiente
+      polylines.add(Polyline(
+        polylineId: PolylineId('route_$i'),
+        points: routes[i],
+        color: routeColor,
+        width: i == selectedRouteIndex ? 10 : 6,
+        patterns: [PatternItem.dot, PatternItem.gap(15)],
+      ));
+    }
+
+    updateUI?.call(); // Refresca la UI después de la actualización de colores
   }
 
   void _listenToReportChanges() {
     reportsSubscription?.cancel();
-    reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) {
+    reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) async {
       _updateMarkersAndCircles(snapshot);
+      await updateRouteColors(); // Asegura que los colores se actualicen en tiempo real
+      updateUI?.call(); // Fuerza la actualización de la UI
     });
   }
 
@@ -172,35 +256,6 @@ class MapController {
       infoWindow: InfoWindow(title: 'Ubicación seleccionada'),
     ));
     controller?.animateCamera(CameraUpdate.newLatLng(location));
-  }
-
-  int _getSafestRouteIndex() {
-    if (routes.isEmpty) return 0;
-    int minReports = double.maxFinite.toInt();
-    int safestRouteIndex = 0;
-
-    for (int i = 0; i < routes.length; i++) {
-      int reportsCount = _countReportsNearRoute(routes[i]);
-      if (reportsCount < minReports) {
-        minReports = reportsCount;
-        safestRouteIndex = i;
-      }
-    }
-    return safestRouteIndex;
-  }
-
-  int _countReportsNearRoute(List<LatLng> route) {
-    int reportCount = 0;
-    const double proximityThreshold = 50.0;
-
-    for (var point in route) {
-      for (var marker in markers) {
-        if (calculateDistanceUseCase.execute(point, marker.position) <= proximityThreshold) {
-          reportCount++;
-        }
-      }
-    }
-    return reportCount;
   }
 
   Future<void> logout(BuildContext context) async {

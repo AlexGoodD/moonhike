@@ -2,7 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:moonhike/presentation/screens/home.dart'; // Asegúrate de que este es el archivo correcto
+import 'package:moonhike/presentation/screens/map_screen.dart'; // Asegúrate de que este es el archivo correcto
 import 'package:shared_preferences/shared_preferences.dart';
 import 'register.dart'; // Tu archivo de registro
 import 'package:moonhike/core/constans/colors.dart'; // Asegúrate de que esto está correcto

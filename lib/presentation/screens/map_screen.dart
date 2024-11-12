@@ -1,5 +1,4 @@
 import 'package:moonhike/imports.dart';
-import '../widgets/route_info_tab.dart';
 
 class MapScreen extends StatefulWidget {
   @override
@@ -12,50 +11,57 @@ class _MapScreenState extends State<MapScreen> {
   late MapController mapController;
 
   bool showStartRouteButton = false;
+  bool isInfoTabOpen = false; // Controla el estado de la pestaña de información
   LatLng? selectedLocation;
+
+  // Controlador para DraggableScrollableSheet
+  final DraggableScrollableController _draggableController = DraggableScrollableController();
 
   @override
   void initState() {
     super.initState();
 
-    // Inicializar los servicios y controlador
     routeService = RouteService();
     routeRepository = RouteRepository(routeService);
+    mapController = MapController(routeRepository: routeRepository);
 
-    // Inicializar `MapController` con `routeManager`
-    mapController = MapController(
-      routeRepository: routeRepository,
-    );
-
-    // Establecer el callback para actualizar la UI
     mapController.setUpdateUICallback(() {
       setState(() {});
     });
 
-    // Inicializar el controlador y verificar permisos de ubicación
     mapController.init();
     _checkLocationPermission();
 
-    // Iniciar la escucha de actualizaciones de ubicación
     mapController.locationService.startLocationUpdates((position) {
       setState(() {
         mapController.controller?.animateCamera(CameraUpdate.newLatLng(position));
       });
     });
+
+    // Añade el listener al DraggableScrollableController para monitorear el tamaño
+    _draggableController.addListener(_handleInfoTabPosition);
   }
 
-  // Verifica y solicita permisos de ubicación, y mueve la cámara si es necesario
+  void _handleInfoTabPosition() {
+    // Cambia isInfoTabOpen dependiendo del tamaño actual del DraggableScrollableSheet
+    if (_draggableController.size > 0.2 && !isInfoTabOpen) {
+      setState(() {
+        isInfoTabOpen = true;
+      });
+    } else if (_draggableController.size <= 0.1 && isInfoTabOpen) {
+      setState(() {
+        isInfoTabOpen = false;
+      });
+    }
+  }
+
   Future<void> _checkLocationPermission() async {
     LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return;
-      }
+      if (permission == LocationPermission.denied) return;
     }
-    if (permission == LocationPermission.deniedForever) {
-      return;
-    }
+    if (permission == LocationPermission.deniedForever) return;
     _moveToUserLocation();
   }
 
@@ -69,12 +75,7 @@ class _MapScreenState extends State<MapScreen> {
       });
 
       double zoomLevel = 15.0;
-
-      if (mapController.controller != null) {
-        mapController.controller!.animateCamera(
-          CameraUpdate.newLatLngZoom(userLocation, zoomLevel),
-        );
-      }
+      mapController.controller?.animateCamera(CameraUpdate.newLatLngZoom(userLocation, zoomLevel));
     } catch (e) {
       print('Error al obtener la ubicación del usuario: $e');
     }
@@ -83,6 +84,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     mapController.dispose();
+    _draggableController.removeListener(_handleInfoTabPosition); // Elimina el listener al destruir
     super.dispose();
   }
 
@@ -108,8 +110,8 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
-            bottom: 150,
-            right: 20,
+            bottom: isInfoTabOpen ? 250 : 120, // Eleva los botones cuando infoTab está abierto
+            left: 330,
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {
@@ -117,7 +119,8 @@ class _MapScreenState extends State<MapScreen> {
                   setState(() {});
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error al iniciar la ruta: $e')));
+                    SnackBar(content: Text('Error al iniciar la ruta: $e')),
+                  );
                 }
               },
               onCreateReport: () async {
@@ -139,21 +142,36 @@ class _MapScreenState extends State<MapScreen> {
                   },
                 );
               },
-              onPreviousRoute: mapController.showPreviousRoute,
-              onNextRoute: mapController.showNextRoute,
               showStartRouteButton: showStartRouteButton,
             ),
           ),
-          if (mapController.routes.isNotEmpty)
-            Positioned(
-              bottom: 600,
-              left: 20,
-              right: 20,
-              child: RouteInfoTab(
-                duration: mapController.routeInfos[mapController.selectedRouteIndex]?['duration'],
-                distance: mapController.routeInfos[mapController.selectedRouteIndex]?['distance'],
-              ),
+          Positioned(
+            bottom: isInfoTabOpen ? 160 : 50, // Eleva SelectRouteWidget cuando infoTab está abierto
+            right: 130,
+            child: SelectRouteWidget(
+              showPreviousRoute: mapController.showPreviousRoute,
+              showNextRoute: mapController.showNextRoute,
             ),
+          ),
+
+          /*Info tab información acerca de las rutas
+          if (mapController.routes.isNotEmpty &&
+              mapController.routeInfos.isNotEmpty &&
+              mapController.selectedRouteIndex < mapController.routeInfos.length)
+            DraggableScrollableSheet(
+              controller: _draggableController, // Asigna el controlador
+              initialChildSize: 0.2,
+              minChildSize: 0.1,
+              maxChildSize: 0.4,
+              builder: (BuildContext context, ScrollController scrollController) {
+                return RouteInfoTab(
+                  duration: mapController.routeInfos[mapController.selectedRouteIndex]?['duration'],
+                  distance: mapController.routeInfos[mapController.selectedRouteIndex]?['distance'],
+                  scrollController: scrollController,
+                  onClose: () => _draggableController.jumpTo(0.1), // Cierra al tamaño mínimo
+                );
+              },
+            ),*/
         ],
       ),
     );
