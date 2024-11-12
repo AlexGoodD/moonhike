@@ -27,6 +27,7 @@ export 'package:moonhike/data/models/reports_service.dart';
 export 'package:moonhike/data/models/directions_service.dart';
 export 'package:moonhike/data/repositories/route_repository.dart';
 export 'package:moonhike/data/models/reports.dart';
+export 'package:flutter_boxicons/flutter_boxicons.dart';
 
 //Domain
 export 'package:moonhike/domain/entities/route_entity.dart';
