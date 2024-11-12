@@ -11,10 +11,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Map<String, dynamic>? userData; // Variable para almacenar los datos del usuario de Firestore
   bool isLoading = true; // Bandera para controlar la carga
 
+  int reportCount = 0;
+
   @override
   void initState() {
     super.initState();
-    _fetchUserData(); // Llama a la función para obtener los datos de Firestore
+    _fetchUserData();
+    _loadUserReportCount(); // Llama a la función para obtener los datos de Firestore
+  }
+
+  Future<void> _loadUserReportCount() async {
+    int count = await _getUserReportCount();
+    if (mounted) {
+      setState(() {
+        reportCount = count;
+      });
+    }
   }
 
   Future<void> _fetchUserData() async {
@@ -58,6 +70,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SnackBar(content: Text('Error al cargar los datos del usuario: $e')),
       );
     }
+  }
+
+  Future<int> _getUserReportCount() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return 0;
+
+    QuerySnapshot reportSnapshot = await FirebaseFirestore.instance
+        .collection('reports')
+        .where('user', isEqualTo: user.email)
+        .get();
+
+    return reportSnapshot.size; // Devuelve el número de reportes
   }
 
   void _onItemTapped(int index) {
@@ -177,17 +201,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                                     children: [
                                       _buildActivityCard(
-                                        Icons.location_on, 
-                                        'Reportes a la comunidad', 
-                                        '13', 
-                                        isReports: true, 
+                                        Icons.location_on,
+                                        'Reportes a la comunidad',
+                                        '$reportCount', // Muestra el número de reportes reales
+                                        isReports: true,
                                         iconColor: const Color.fromARGB(255, 235, 95, 85), // Color personalizado para el ícono de reportes
                                       ),
                                       _buildActivityCard(
-                                        Boxicons.bxs_moon, 
-                                        'Días activo en MoonHike', 
-                                        '125', 
-                                        isReports: false, 
+                                        Boxicons.bxs_moon,
+                                        'Días activo en MoonHike',
+                                        '125', // Esta se puede actualizar más adelante
+                                        isReports: false,
                                         iconColor: paletteColors.sixthColor, // Color personalizado para el ícono de días activos
                                       ),
                                     ],
@@ -218,19 +242,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           icon: Boxicons.bxs_cog,
                           title: 'Configuración de cuenta',
                           subtitle: 'Actualiza y edita tu información personal',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => AccountConfigScreen()), // Reemplaza con tu widget de pantalla de configuración
+                            );
+                          },
                         ),
                         _buildSettingsButton(
                           context,
                           icon: Boxicons.bxs_lock_open_alt,
                           title: 'Privacidad',
                           subtitle: 'Cambia tu contraseña',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => PrivacyScreen()), // Reemplaza con tu widget de pantalla de privacidad
+                            );
+                          },
                         ),
                         _buildSettingsButton(
                           context,
                           icon: Boxicons.bxs_paper_plane,
                           title: 'Invita a un amigo/a',
                           subtitle: 'Comparte la experiencia MoonHike!',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => InviteFriendScreen()), // Reemplaza con tu widget de pantalla de invitar a un amigo
+                            );
+                          },
                         ),
+
                       ],
                     ),
                   ),
@@ -293,8 +336,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   // Método para crear los botones de configuración
-  Widget _buildSettingsButton(BuildContext context,
-      {required IconData icon, required String title, required String subtitle}) {
+  Widget _buildSettingsButton(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap, // Nuevo parámetro
+  }) {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4.0), // Espacio entre las cards
       decoration: BoxDecoration(
@@ -302,24 +350,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(12.0), // Bordes redondeados
       ),
       child: ListTile(
-        leading: Container(
-          width: 53.0, // Ancho del fondo blanco
-          height: 53.0, // Alto del fondo blanco
-          decoration: BoxDecoration(
-            color: Colors.white, // Fondo blanco para el ícono
-            borderRadius: BorderRadius.circular(8.0), // Bordes redondeados del fondo del ícono
-          ),
-          padding: EdgeInsets.all(4.0), // Espaciado interno para el ícono
-          child: Icon(icon, color: AppColors.buttonIcon, size: 32.0),
-        ),
+        leading: Icon(icon, color: AppColors.buttonIcon),
         title: Text(
           title,
           style: TextStyle(color: Colors.white), // Asegura que el texto sea visible
         ),
         subtitle: Text(
           subtitle,
-          style: TextStyle(color: const Color.fromARGB(139, 255, 255, 255)), // Color de texto secundario
+          style: TextStyle(color: Colors.grey[300]), // Color de texto secundario
         ),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        onTap: onTap, // Agregar funcionalidad al presionar
       ),
     );
   }

@@ -28,6 +28,9 @@ export 'package:moonhike/data/models/directions_service.dart';
 export 'package:moonhike/data/repositories/route_repository.dart';
 export 'package:moonhike/data/models/reports.dart';
 export 'package:flutter_boxicons/flutter_boxicons.dart';
+export 'package:image_picker/image_picker.dart';
+export 'dart:io';
+export 'package:firebase_storage/firebase_storage.dart';
 
 //Domain
 export 'package:moonhike/domain/entities/route_entity.dart';
@@ -39,7 +42,10 @@ export 'package:moonhike/domain/use_cases/get_routes_use_case.dart';
 export 'package:moonhike/presentation/screens/map_screen.dart';
 export 'package:moonhike/presentation/screens/login_screen.dart';
 export 'package:moonhike/presentation/screens/map_controller.dart';
-export 'package:moonhike/presentation/screens/profile_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/profile_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/account_config_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/invite_friend_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/privacy_screen.dart';
 export 'package:moonhike/presentation/screens/reports.dart';
 export 'package:moonhike/presentation/screens/settings.dart';
 export 'package:moonhike/presentation/screens/register.dart';

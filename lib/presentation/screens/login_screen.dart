@@ -60,11 +60,10 @@ class _LoginPageState extends State<LoginPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('userUID', userCredential.user!.uid);
 
-      // Redirigir a la pantalla principal
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MapScreen()),
-      );
+      // Retrasar la navegación para permitir que el flujo actual termine
+      Future.delayed(Duration.zero, () {
+        Navigator.pushReplacementNamed(context, '/map');
+      });
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = e.message ?? "Error desconocido";
