@@ -32,7 +32,7 @@ class _ReportDialogState extends State<ReportDialog> {
           ListTile(
             leading: Icon(Icons.directions_walk),
             title: Text('Interés peatonal'),
-            onTap: () => widget.onReportTypeSelected('Interés peatonal', note),
+            onTap: () => widget.onReportTypeSelected('Poca vialidad peatonal', note),
           ),
           TextField(
             decoration: InputDecoration(labelText: 'Nota (opcional)'),

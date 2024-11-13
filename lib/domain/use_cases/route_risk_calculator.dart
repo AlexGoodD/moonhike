@@ -40,28 +40,49 @@ class RouteRiskCalculator {
     const double proximityThreshold = 50.0;
     double riskScore = 0;
 
+    // Crear un conjunto para almacenar los marcadores ya procesados en esta ruta
+    Set<String> processedMarkers = {};
+
     for (LatLng point in route) {
       for (Marker marker in markers) {
-        if (calculateDistanceUseCase.execute(point, marker.position) <= proximityThreshold) {
-          if (marker.infoWindow.title == "Mala iluminación") {
+        double distance = calculateDistanceUseCase.execute(point, marker.position);
+
+        // Procesar solo los marcadores dentro del umbral y que no hayan sido contados
+        if (distance <= proximityThreshold && !processedMarkers.contains(marker.markerId.value)) {
+          String markerTitle = marker.infoWindow.title ?? '';
+          processedMarkers.add(marker.markerId.value); // Marcar como procesado
+
+          if (markerTitle == "Mala iluminación") {
+            print("Sumando 3 puntos por 'Mala iluminación'");
             riskScore += 3;
-          } else if (marker.infoWindow.title == "Inseguridad") {
+          } else if (markerTitle == "Inseguridad") {
+            print("Sumando 5 puntos por 'Inseguridad'");
             riskScore += 5;
-          } else if (marker.infoWindow.title == "Poca vialidad peatonal") {
+          } else if (markerTitle == "Poca vialidad peatonal") {
+            print("Sumando 4 puntos por 'Poca vialidad peatonal'");
             riskScore += 4;
+          } else {
+            print("Marcador desconocido: $markerTitle");
           }
         }
       }
     }
+
+    print("Puntaje de riesgo total para la ruta: $riskScore");
     return riskScore;
   }
 
+  //Mala iluminación 6, Inseguridad 20, Interes peatonal 0
+
   Color getRouteColor(double riskScore) {
     if (riskScore < 10) {
+      print("Color asignado: Verde para puntaje de riesgo $riskScore");
       return Colors.green;
     } else if (riskScore <= 20) {
+      print("Color asignado: Amarillo para puntaje de riesgo $riskScore");
       return Colors.yellow;
     } else {
+      print("Color asignado: Rojo para puntaje de riesgo $riskScore");
       return Colors.red;
     }
   }

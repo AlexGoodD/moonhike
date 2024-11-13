@@ -107,7 +107,8 @@ class MapController {
     double lowestRiskScore = double.infinity;
 
     for (int i = 0; i < routes.length; i++) {
-      double riskScore = routeRiskCalculator.calculateRouteRisk(routes[i], markers);
+      double riskScore = routeRiskCalculator.calculateRouteRisk(
+          routes[i], markers);
       riskScores.add(riskScore);
 
       if (riskScore < lowestRiskScore) {
@@ -115,8 +116,21 @@ class MapController {
         safestRouteIndex = i;
       }
 
-      Color routeColor = routeRiskCalculator.getRouteColor(riskScore);
+      //Color routeColor = routeRiskCalculator.getRouteColor(riskScore);
 
+      // Asegurarse de que se obtiene el color correcto para cada puntaje de riesgo
+      Color routeColor = routeRiskCalculator.getRouteColor(riskScore);
+      print("Ruta $i tiene puntaje de riesgo $riskScore y color asignado $routeColor.");
+      polylines.add(Polyline(
+        polylineId: PolylineId('route_$i'),
+        points: routes[i],
+        color: routeColor,
+        width: 6,
+        patterns: [PatternItem.dot, PatternItem.gap(15)],
+      ));
+
+    selectedRouteIndex = safestRouteIndex;
+    updateUI?.call();
       polylines.add(Polyline(
         polylineId: PolylineId('route_$i'),
         points: routes[i],
@@ -205,9 +219,9 @@ class MapController {
   }
 
   // Método de confirmación de eliminación
-  void showDeleteConfirmationDialog(BuildContext context, String reportId) {
+  void showDeleteConfirmationDialog(BuildContext parentContext, String reportId) {
     showDialog(
-      context: context,
+      context: parentContext, // Usar el contexto de un widget superior
       builder: (BuildContext context) {
         return AlertDialog(
           title: Text("Eliminar Reporte"),
@@ -219,18 +233,16 @@ class MapController {
             ),
             TextButton(
               onPressed: () async {
-                // Llamar a la función de eliminación y luego recargar marcadores
+                // Mantener el contexto antes del await
+                Navigator.of(context).pop();
+
+                // Eliminar el reporte y luego recargar los marcadores
                 await reportsService.deleteReport(reportId);
 
-                // Recargar los reportes para actualizar en tiempo real
+                // Remover marcador y círculo asociados con el reporte
                 markers.removeWhere((marker) => marker.markerId.value == 'report_$reportId');
                 circles.removeWhere((circle) => circle.circleId.value == 'danger_area_$reportId');
-                updateUI?.call(); // Actualiza la interfaz inmediatamente
-
-                /* Cargar y actualizar marcadores para que se refleje la eliminación
-                await loadReports(context);*/
-                updateUI?.call();
-                Navigator.of(context).pop();
+                updateUI?.call(); // Actualiza la interfaz
               },
               child: Text("Eliminar"),
             ),
@@ -244,8 +256,9 @@ class MapController {
     reportsSubscription?.cancel();
     reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) async {
       _updateMarkersAndCircles(snapshot, context, userEmail!);
-      await updateRouteColors(); // Asegura que los colores se actualicen en tiempo real
-      await loadReports(context); // Carga todos los reportes de nuevo
+      _classifyAndDisplayRoutes();
+      //await updateRouteColors(); // Asegura que los colores se actualicen en tiempo real
+      //await loadReports(context); // Carga todos los reportes de nuevo
       updateUI?.call(); // Fuerza la actualización de la UI después de cada cambio
     });
   }
