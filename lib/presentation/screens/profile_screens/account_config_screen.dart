@@ -50,7 +50,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
             children: [
               // Flecha para volver atrás y título
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   IconButton(
                     icon: Icon(Icons.arrow_back, color: Colors.white),
@@ -72,31 +72,24 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
               SizedBox(height: 20),
               _buildAvatarSelection(),
               SizedBox(height: 20),
-              _buildTextField(_nameController, 'Nombre', Icons.person),
+              _buildTextField(_nameController, 'Nombre', Boxicons.bx_user),
               SizedBox(height: 15),
-              _buildTextField(_emailController, 'Correo electrónico', Icons.email),
+              _buildTextField(_emailController, 'Correo electrónico', Boxicons.bx_envelope),
               SizedBox(height: 15),
-              _buildTextField(_phoneController, 'Teléfono', Icons.phone),
+              _buildTextField(_phoneController, 'Teléfono', Boxicons.bx_phone),
               SizedBox(height: 25),
               Center(
                 child: Stack(
                   children: [
                     Container(
-                      width: double.infinity,
+                      width: 250,
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
-                          colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)], // Colores del gradiente
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+                          colors: [Color.fromRGBO(122, 88, 247, 1), Color.fromRGBO(95, 60, 229, 1)], // Colores del gradiente
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
                         ),
                         borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.purple.withOpacity(0.4),
-                            offset: Offset(0, 4),
-                            blurRadius: 6,
-                          ),
-                        ],
                       ),
                       child: SizedBox(height: 55), // Altura del botón
                     ),
@@ -146,13 +139,13 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
             Text(
               'Selecciona tu avatar',
               style: TextStyle(
-                fontSize: 23,
-                fontWeight: FontWeight.w500,
-                color: const Color.fromARGB(159, 230, 213, 255),
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: const Color.fromARGB(255, 255, 255, 255),
               ),
               textAlign: TextAlign.center, // Centrar el texto
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 0), // Reducir el espacio entre el texto y la cuadrícula
             GridView.builder(
               shrinkWrap: true,
               physics: NeverScrollableScrollPhysics(),
@@ -205,7 +198,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        labelStyle: TextStyle(color: const Color.fromARGB(173, 255, 255, 255), fontWeight: FontWeight.w500),
         prefixIcon: Icon(icon, color: const Color.fromARGB(255, 255, 255, 255)),
         filled: true,
         fillColor: Color.fromARGB(140, 15, 11, 32), // Color de fondo más oscuro
@@ -222,7 +215,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
           borderSide: BorderSide(color: const Color.fromARGB(255, 86, 81, 249)),
         ),
       ),
-      style: TextStyle(color: Colors.white),
+      style: TextStyle(color: const Color.fromARGB(110, 255, 255, 255)),
     );
   }
 

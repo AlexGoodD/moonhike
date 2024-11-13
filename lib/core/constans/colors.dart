@@ -10,8 +10,8 @@ class AppColors {
   static const buttonIcon = Color.fromRGBO(94, 60, 229, 1);
 
   //profile screen colors
-  static const backgroundTop = Color.fromRGBO(78, 62, 181, 1);
-  static const backgroundBottom = Color.fromRGBO(23, 24, 37, 1);
+  static const backgroundTop = Color.fromRGBO(47, 47, 97, 1);
+  static const backgroundBottom = Color.fromRGBO(31, 32, 52, 1);
   static const generalCard = Color.fromRGBO(55, 55, 95, 1);
   static const activityReports = Color.fromRGBO(33, 24, 72, 1);
   static const activityDaysTop = Color.fromRGBO(90, 93, 146, 1);

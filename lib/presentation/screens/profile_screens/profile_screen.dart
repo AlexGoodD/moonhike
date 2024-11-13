@@ -234,7 +234,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       backgroundColor: const Color.fromARGB(255, 132, 149, 233),
                                       child: CircleAvatar(
                                         radius: 56,
-                                        backgroundColor: const Color.fromARGB(255, 15, 14, 14),
+                                        backgroundColor: const Color.fromARGB(255, 15, 15, 15),
                                         child: CircularProgressIndicator(), // Indicador de carga
                                       ),
                                     );
@@ -406,7 +406,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           subtitle,
           style: TextStyle(color: Colors.grey[300]), // Color de texto secundario
         ),
-        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
         onTap: onTap, // Agregar funcionalidad al presionar
       ),
     );
