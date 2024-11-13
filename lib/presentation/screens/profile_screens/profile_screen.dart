@@ -116,6 +116,76 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
+  void _showInviteFriendBottomSheet(BuildContext context) {
+    final String repoLink = 'https://github.com/AlexGoodD/moonhike'; // Enlace del repositorio
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (BuildContext context) {
+        return Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColors.profileCard, // Ajusta este color para que coincida con tu tema
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Enlace de invitación',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              SizedBox(height: 10),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        repoLink,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.white,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.copy, color: Colors.white),
+                      onPressed: () {
+                        Clipboard.setData(ClipboardData(text: repoLink));
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Enlace copiado al portapapeles'),
+                            duration: Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -208,13 +278,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                         isReports: true,
                                         iconColor: const Color.fromARGB(255, 235, 95, 85), // Color personalizado para el ícono de reportes
                                       ),
-                                      _buildActivityCard(
-                                        Boxicons.bxs_moon,
-                                        'Días activo en MoonHike',
-                                        '125', // Esta se puede actualizar más adelante
-                                        isReports: false,
-                                        iconColor: paletteColors.sixthColor, // Color personalizado para el ícono de días activos
-                                      ),
+                                      // Reemplaza la card de días activo con el nuevo widget
+                                      buildDaysActiveCard(),
                                     ],
                                   ),
                                 ],
@@ -306,13 +371,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           title: 'Invita a un amigo/a',
                           subtitle: 'Comparte la experiencia MoonHike!',
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(builder: (context) => InviteFriendScreen()), // Reemplaza con tu widget de pantalla de invitar a un amigo
-                            );
+                            _showInviteFriendBottomSheet(context);
                           },
                         ),
-
                       ],
                     ),
                   ),
@@ -371,6 +432,79 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget buildDaysActiveCard() {
+    return FutureBuilder<DocumentSnapshot>(
+      future: FirebaseFirestore.instance
+          .collection('users')
+          .doc(FirebaseAuth.instance.currentUser?.uid)
+          .get(),
+      builder: (context, snapshot) {
+        String daysCount = '0'; // Valor predeterminado
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          daysCount = '...'; // Indicador de carga mientras se obtienen los datos
+        } else if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+            daysCount = 'N/A'; // Muestra "N/A" si hay error o no hay datos
+          } else {
+            final userData = snapshot.data!.data() as Map<String, dynamic>?;
+            final Timestamp? createdAt = userData?['createdAt'];
+
+            if (createdAt != null) {
+              final DateTime creationDate = createdAt.toDate();
+              daysCount = DateTime.now().difference(creationDate).inDays.toString();
+            }
+          }
+        }
+
+        return Container(
+          width: 150.0, // Ajustar el ancho de la tarjeta
+          padding: EdgeInsets.all(16.0),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [AppColors.activityDaysTop, AppColors.activityDaysBottom], // Degradado para "Días activos"
+            ),
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // Justificar el texto a la izquierda
+            mainAxisSize: MainAxisSize.min, // Ajusta el tamaño de la tarjeta al contenido
+            children: [
+              // Título en la parte superior izquierda
+              Text(
+                'Días con MoonHike',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white, // Color de texto claro para contraste
+                ),
+              ),
+              SizedBox(height: 8.0),
+              // Número y icono en la parte inferior derecha
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Spacer(), // Empuja el número e ícono a la derecha
+                  Icon(Boxicons.bxs_moon, size: 24, color: paletteColors.sixthColor), // Ícono de la card
+                  Text(
+                    daysCount, // Muestra el número de días
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      color: const Color.fromARGB(255, 255, 255, 255),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 

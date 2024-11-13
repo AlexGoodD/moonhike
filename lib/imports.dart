@@ -5,6 +5,8 @@ export 'package:flutter/material.dart';
 export 'package:google_maps_flutter/google_maps_flutter.dart';
 export 'package:geolocator/geolocator.dart';
 export 'package:flutter_boxicons/flutter_boxicons.dart';
+export 'package:share_plus/share_plus.dart';
+export 'package:flutter/services.dart';
 //import 'package:provider/provider.dart';
 
 //Firebase
