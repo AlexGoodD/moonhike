@@ -81,6 +81,10 @@ flutter:
   #   - images/a_dot_ham.jpeg
   assets:
     - assets/map_styles/map_style.json
+    - assets/avatars/avatar1.png
+    - assets/avatars/avatar2.png
+    - assets/avatars/avatar3.png
+    - assets/avatars/avatar4.png
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
