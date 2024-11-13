@@ -389,7 +389,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
         borderRadius: BorderRadius.circular(12.0), // Bordes redondeados
       ),
       child: ListTile(
-        leading: Icon(icon, color: AppColors.buttonIcon),
+        leading: Container(
+          padding: EdgeInsets.all(8.0), // Espacio interno alrededor del ícono
+          decoration: BoxDecoration(
+            color: Colors.white, // Color de fondo blanco
+            shape: BoxShape.rectangle, // Forma de cuadrado
+            borderRadius: BorderRadius.circular(8.0), // Bordes redondeados
+          ),
+          child: Icon(icon, color: AppColors.buttonIcon),
+        ),
         title: Text(
           title,
           style: TextStyle(color: Colors.white), // Asegura que el texto sea visible
