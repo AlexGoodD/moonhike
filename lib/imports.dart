@@ -47,6 +47,11 @@ export 'package:moonhike/presentation/widgets/map_ui_service.dart';
 export 'package:moonhike/presentation/widgets/route_info_tab.dart';
 export 'package:moonhike/presentation/widgets/select_route.dart';
 export 'package:moonhike/presentation/utils/map_utils.dart';
+export 'package:moonhike/presentation/screens/reports.dart';
+export 'package:moonhike/presentation/screens/settings.dart';
+export 'package:moonhike/presentation/screens/initial_screen.dart';
+
+
 
 
 

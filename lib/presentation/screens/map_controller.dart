@@ -210,6 +210,7 @@ class MapController {
     );
   }
 
+  /*
   Future<void> logout(BuildContext context) async {
     try {
       await userService.logout(context);
@@ -223,4 +224,5 @@ class MapController {
       );
     }
   }
+   */
 }

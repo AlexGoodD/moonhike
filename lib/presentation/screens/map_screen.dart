@@ -11,11 +11,53 @@ class _MapScreenState extends State<MapScreen> {
   late MapController mapController;
 
   bool showStartRouteButton = false;
-  bool isInfoTabOpen = false; // Controla el estado de la pestaña de información
+  bool isInfoTabOpen = false;
   LatLng? selectedLocation;
+
+  int _selectedIndex = 0;
 
   // Controlador para DraggableScrollableSheet
   final DraggableScrollableController _draggableController = DraggableScrollableController();
+
+  final List<Widget> _pages = [
+    MapScreen(), // Página de inicio/mapa
+    ReportsScreen(), // Página de reportes
+    SettingsScreen(), // Página de configuración
+    ProfileScreen(), // Página de perfil
+  ];
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+    // Navegación a la página correspondiente
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MapScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ReportsScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SettingsScreen()),
+        );
+        break;
+      case 3:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ProfileScreen()),
+        );
+        break;
+    }
+  }
 
   @override
   void initState() {
@@ -38,12 +80,10 @@ class _MapScreenState extends State<MapScreen> {
       });
     });
 
-    // Añade el listener al DraggableScrollableController para monitorear el tamaño
     _draggableController.addListener(_handleInfoTabPosition);
   }
 
   void _handleInfoTabPosition() {
-    // Cambia isInfoTabOpen dependiendo del tamaño actual del DraggableScrollableSheet
     if (_draggableController.size > 0.2 && !isInfoTabOpen) {
       setState(() {
         isInfoTabOpen = true;
@@ -84,19 +124,30 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void dispose() {
     mapController.dispose();
-    _draggableController.removeListener(_handleInfoTabPosition); // Elimina el listener al destruir
+    _draggableController.removeListener(_handleInfoTabPosition);
     super.dispose();
+  }
+
+  void _checkAuthentication() {
+    FirebaseAuth.instance.authStateChanges().listen((User? user) {
+      if (user == null) {
+        // Si no hay usuario autenticado, redirige a la pantalla de login
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('MoonHike')),
       body: Stack(
         children: [
           MapWidget(mapController: mapController),
           Positioned(
-            top: 10,
+            top: 70,
             left: 10,
             right: 10,
             child: AddressSearchWidget(
@@ -110,7 +161,7 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
-            bottom: isInfoTabOpen ? 250 : 120, // Eleva los botones cuando infoTab está abierto
+            bottom: isInfoTabOpen ? 250 : 120,
             left: 330,
             child: FloatingActionButtons(
               onStartRoute: () async {
@@ -146,33 +197,18 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
-            bottom: isInfoTabOpen ? 160 : 50, // Eleva SelectRouteWidget cuando infoTab está abierto
+            bottom: isInfoTabOpen ? 160 : 50,
             right: 130,
             child: SelectRouteWidget(
               showPreviousRoute: mapController.showPreviousRoute,
               showNextRoute: mapController.showNextRoute,
             ),
           ),
-
-          /*Info tab información acerca de las rutas
-          if (mapController.routes.isNotEmpty &&
-              mapController.routeInfos.isNotEmpty &&
-              mapController.selectedRouteIndex < mapController.routeInfos.length)
-            DraggableScrollableSheet(
-              controller: _draggableController, // Asigna el controlador
-              initialChildSize: 0.2,
-              minChildSize: 0.1,
-              maxChildSize: 0.4,
-              builder: (BuildContext context, ScrollController scrollController) {
-                return RouteInfoTab(
-                  duration: mapController.routeInfos[mapController.selectedRouteIndex]?['duration'],
-                  distance: mapController.routeInfos[mapController.selectedRouteIndex]?['distance'],
-                  scrollController: scrollController,
-                  onClose: () => _draggableController.jumpTo(0.1), // Cierra al tamaño mínimo
-                );
-              },
-            ),*/
         ],
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
       ),
     );
   }

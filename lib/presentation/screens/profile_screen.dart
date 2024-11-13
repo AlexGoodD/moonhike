@@ -1,4 +1,3 @@
-//Este archivo contiene la pantalla de detalles del perfil
 import 'package:moonhike/imports.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -7,205 +6,324 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  bool isEditing = false;
-  TextEditingController nameController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
-  String originalName = 'Nombre del Usuario';
-  String? _userEmail;
+  final User? user = FirebaseAuth.instance.currentUser; // Usuario autenticado
+  int _selectedIndex = 3; // Índice de la pantalla actual (Perfil)
+  Map<String, dynamic>? userData; // Variable para almacenar los datos del usuario de Firestore
+  bool isLoading = true; // Bandera para controlar la carga
+  final UserService userService = UserService(); // Instancia de UserService
 
   @override
   void initState() {
     super.initState();
-    nameController.text = originalName;
-    _getUserEmail(); // Llamamos al método para obtener el correo del usuario
+    _fetchUserData(); // Llama a la función para obtener los datos de Firestore
   }
 
-  // Método para obtener el correo del usuario y establecerlo en el controlador de email
-  void _getUserEmail() async {
-    User? user = FirebaseAuth.instance.currentUser;
-    setState(() {
-      _userEmail = user?.email;
-      if (_userEmail != null) {
-        emailController.text = _userEmail!; // Asigna el email del usuario al TextField
+  Future<void> _fetchUserData() async {
+    try {
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user!.uid)
+            .get();
+
+        if (userDoc.exists) {
+          print("Datos del usuario obtenidos: ${userDoc.data()}"); // Depuración
+          if (mounted) {
+            setState(() {
+              userData = userDoc.data() as Map<String, dynamic>?;
+              isLoading = false; // Termina la carga cuando los datos se obtienen
+            });
+          }
+        } else {
+          print("Documento del usuario no encontrado."); // Depuración
+          if (mounted) {
+            setState(() {
+              isLoading = false;
+              userData = {
+                'name': 'Nombre no disponible',
+                'email': user!.email ?? 'Correo no disponible',
+                'phone': 'Número no disponible'
+              };
+            });
+          }
+        }
       }
+    } catch (e) {
+      print("Error al obtener los datos de Firestore: $e"); // Depuración
+      if (mounted) {
+        setState(() {
+          isLoading = false;
+        });
+      }
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cargar los datos del usuario: $e')),
+      );
+    }
+  }
+
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
     });
+
+    // Navegación a la página correspondiente
+    switch (index) {
+      case 0:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MapScreen()),
+        );
+        break;
+      case 1:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => ReportsScreen()),
+        );
+        break;
+      case 2:
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SettingsScreen()),
+        );
+        break;
+      case 3:
+      // Ya estás en la pantalla de perfil
+        break;
+    }
   }
 
-  void _showSaveDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Guardar cambios'),
-          content: Text('¿Deseas guardar los cambios?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('Cancelar'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  originalName = nameController.text;
-                  _userEmail = emailController.text;
-                  isEditing = false;
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Guardar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
+  Future<void> _logout() async {
+    try {
+      await userService.logout(context); // Llama al método logout de UserService
 
-  void _showCancelDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('Cancelar edición'),
-          content: Text('¿Estás seguro de que deseas cancelar sin guardar los cambios?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('No'),
-            ),
-            TextButton(
-              onPressed: () {
-                setState(() {
-                  nameController.text = originalName;
-                  emailController.text = _userEmail!;
-                  isEditing = false;
-                });
-                Navigator.of(context).pop();
-              },
-              child: Text('Sí'),
-            ),
-          ],
-        );
-      },
-    );
+      // Redirige al LoginPage y elimina todas las pantallas anteriores de la pila
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+            (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión: $e')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Perfil'),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: <Widget>[
-            CircleAvatar(
-              radius: 60.0,
-              backgroundImage: NetworkImage('https://via.placeholder.com/150'),
-            ),
-            SizedBox(height: 20.0),
-            isEditing ? _buildEditableFields() : _buildProfileDetails(),
-            SizedBox(height: 20.0),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    if (isEditing) {
-                      _showSaveDialog();
-                    } else {
-                      setState(() {
-                        isEditing = true;
-                      });
-                    }
-                  },
-                  icon: Icon(isEditing ? Icons.save : Icons.edit),
-                  label: Text(isEditing ? 'Guardar cambios' : 'Editar perfil'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                  ),
+      body: isLoading
+          ? Center(child: CircularProgressIndicator()) // Indicador de carga mientras se obtienen los datos
+          : userData == null
+          ? Center(child: Text('No se encontraron datos del usuario.'))
+          : Container(
+        width: double.infinity, // Asegura que ocupe todo el ancho de la pantalla
+        height: double.infinity, // Asegura que ocupe todo el alto de la pantalla
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              AppColors.backgroundTop,
+              AppColors.backgroundBottom,
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              // Barra superior con título y botón de logout
+              Padding(
+                padding: EdgeInsets.only(top: 30.0), // Ajusta el valor según la separación deseada
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.logout, color: Colors.white), // Color del ícono de logout
+                      onPressed: _logout, // Llama a _logout en lugar de signOut directo
+                    ),
+                  ],
                 ),
-                if (isEditing)
-                  SizedBox(width: 10.0),
-                if (isEditing)
-                  ElevatedButton.icon(
-                    onPressed: _showCancelDialog,
-                    icon: Icon(Icons.cancel),
-                    label: Text('Cancelar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.grey,
-                      foregroundColor: Colors.white,
+              ),
+              SizedBox(height: 16.0), // Espacio entre la barra superior y el contenido
+              Stack(
+                clipBehavior: Clip.none,
+                alignment: Alignment.topCenter,
+                children: [
+                  Container(
+                    margin: EdgeInsets.only(top: 60), // Espacio para la imagen sobresaliente
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: AppColors.profileCard, // Fondo del rectángulo
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Column(
+                      children: [
+                        SizedBox(height: 50), // Espacio para la imagen de perfil
+                        Text(
+                          userData?['name'] ?? 'Nombre del Usuario',
+                          style: TextStyle(
+                            fontSize: 26,
+                            fontWeight: FontWeight.w800,
+                            color: const Color.fromARGB(255, 255, 255, 255), // Color de texto principal
+                          ),
+                        ),
+                        SizedBox(height: 5),
+                        Text(
+                          userData?['email'] ?? 'correo@ejemplo.com',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: paletteColors.fourthColor, // Color de texto secundario
+                          ),
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Actividad',
+                          style: TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.w600,
+                            color: const Color.fromARGB(82, 235, 223, 255), // Color de "Actividad"
+                          ),
+                        ),
+                        SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            _buildActivityCard(Icons.location_on, 'Reportes a la comunidad', '13', isReports: true),
+                            _buildActivityCard(Icons.nights_stay, 'Días activo en MoonHike', '125', isReports: false),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-              ],
+                  Positioned(
+                    top: -10,
+                    child: CircleAvatar(
+                      radius: 60,
+                      backgroundColor: const Color.fromARGB(255, 132, 149, 233),
+                      child: CircleAvatar(
+                        radius: 56,
+                        backgroundImage: NetworkImage(
+                          user?.photoURL ?? 'https://via.placeholder.com/150',
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+
+              // Botones de configuración
+              _buildSettingsButton(
+                context,
+                icon: Icons.settings,
+                title: 'Configuración de cuenta',
+                subtitle: 'Actualiza y edita tu información personal',
+              ),
+              _buildSettingsButton(
+                context,
+                icon: Icons.lock,
+                title: 'Privacidad',
+                subtitle: 'Cambia tu contraseña',
+              ),
+              _buildSettingsButton(
+                context,
+                icon: Icons.share,
+                title: 'Invita a un amigo/a',
+                subtitle: 'Comparte la experiencia MoonHike!',
+              ),
+            ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onItemTapped,
+      ),
+    );
+  }
+
+
+  Widget _buildActivityCard(IconData icon, String label, String count, {required bool isReports}) {
+    return Container(
+      width: 150.0, // Ajustar el ancho de la tarjeta
+      padding: EdgeInsets.all(16.0),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: isReports
+              ? [Colors.black, AppColors.activityReports] // Degradado para "Reportes"
+              : [AppColors.activityDaysTop, AppColors.activityDaysBottom], // Degradado para "Días activos"
+        ),
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start, // Justificar el texto a la izquierda
+        mainAxisSize: MainAxisSize.min, // Ajusta el tamaño de la tarjeta al contenido
+        children: [
+          // Título en la parte superior izquierda
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: const Color.fromARGB(176, 227, 217, 255), // Color de texto claro para contraste
             ),
-            if (!isEditing) ...[
-              SizedBox(height: 20.0),
-              ElevatedButton.icon(
-                onPressed: () {
-                  print('Cerrar sesión');
-                },
-                icon: Icon(Icons.logout),
-                label: Text('Cerrar sesión'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
+          ),
+          SizedBox(height: 8.0),
+          // Número y icono en la parte inferior derecha
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Spacer(), // Empuja el número e ícono a la derecha
+              Icon(icon, size: 24, color: AppColors.buttonIcon),
+              Text(
+                count,
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.w900,
+                  color: const Color.fromARGB(255, 255, 255, 255),
                 ),
               ),
             ],
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildProfileDetails() {
-    return Column(
-      children: [
-        Text(
-          nameController.text,
-          style: TextStyle(
-            fontSize: 24.0,
-            fontWeight: FontWeight.bold,
+  // Método para crear los botones de configuración
+  Widget _buildSettingsButton(BuildContext context,
+      {required IconData icon, required String title, required String subtitle}) {
+    return Container(
+      margin: EdgeInsets.symmetric(vertical: 4.0), // Espacio entre las cards
+      decoration: BoxDecoration(
+        color: AppColors.generalCard, // Color de fondo de las cards
+        borderRadius: BorderRadius.circular(12.0), // Bordes redondeados
+      ),
+      child: ListTile(
+        leading: Container(
+          width: 53.0, // Ancho del fondo blanco
+          height: 53.0, // Alto del fondo blanco
+          decoration: BoxDecoration(
+            color: Colors.white, // Fondo blanco para el ícono
+            borderRadius: BorderRadius.circular(8.0), // Bordes redondeados del fondo del ícono
           ),
+          padding: EdgeInsets.all(4.0), // Espaciado interno para el ícono
+          child: Icon(icon, color: AppColors.buttonIcon, size: 32.0),
         ),
-        SizedBox(height: 8.0),
-        Text(
-          emailController.text,
-          style: TextStyle(
-            fontSize: 16.0,
-            color: Colors.grey[700],
-          ),
+        title: Text(
+          title,
+          style: TextStyle(color: Colors.white), // Asegura que el texto sea visible
         ),
-      ],
-    );
-  }
-
-  Widget _buildEditableFields() {
-    return Column(
-      children: [
-        TextField(
-          controller: nameController,
-          decoration: InputDecoration(
-            labelText: 'Nombre',
-            border: OutlineInputBorder(),
-          ),
+        subtitle: Text(
+          subtitle,
+          style: TextStyle(color: const Color.fromARGB(139, 255, 255, 255)), // Color de texto secundario
         ),
-        SizedBox(height: 10.0),
-        TextField(
-          controller: emailController,
-          decoration: InputDecoration(
-            labelText: 'Correo electrónico',
-            border: OutlineInputBorder(),
-          ),
-        ),
-      ],
+      ),
     );
   }
 }

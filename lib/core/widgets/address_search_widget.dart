@@ -1,6 +1,3 @@
-/*Este es el widget de la barra de búsqueda que usa la API de Google Places para autocompletar las
-direcciones. Está en la capa de presentación, porque es un componente de interfaz de usuario.*/
-
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:moonhike/imports.dart';
@@ -16,14 +13,15 @@ class AddressSearchWidget extends StatefulWidget {
 
 class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   TextEditingController _controller = TextEditingController();
-  List<dynamic> _suggestions = [];
+  List<Map<String, dynamic>> _suggestions = [];
   bool _isLoading = false;
   LatLng? _currentPosition;
+  final DirectionsService _directionsService = DirectionsService();
 
   @override
   void initState() {
     super.initState();
-    _getCurrentLocation(); // Obtener la posición actual del usuario
+    _getCurrentLocation();
   }
 
   Future<void> _getCurrentLocation() async {
@@ -37,7 +35,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
   void _getSuggestions(String input) async {
     final String apiKey = ApiKeys.googleMapsApiKey;
-    if (_currentPosition == null) return; // Asegúrate de que la ubicación esté disponible
+    if (_currentPosition == null) return;
 
     final String locationBias =
         '${_currentPosition!.latitude},${_currentPosition!.longitude}';
@@ -46,29 +44,52 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
         '&locationbias=circle:5000@$locationBias&key=$apiKey';
 
     setState(() {
-      _isLoading = true; // Muestra un indicador de carga mientras se obtienen los resultados
+      _isLoading = true;
     });
 
     var response = await http.get(Uri.parse(url));
     var json = jsonDecode(response.body);
 
+    List<Map<String, dynamic>> suggestions = [];
+    for (var suggestion in json['predictions']) {
+      var placeId = suggestion['place_id'];
+      var shortName = suggestion['structured_formatting']['main_text'];
+      var address = suggestion['structured_formatting']['secondary_text'];
+
+      LatLng? suggestionLocation = await _getLatLngFromPlaceId(placeId);
+      if (suggestionLocation != null) {
+        var routeInfo = await _directionsService.getRouteInfo(_currentPosition!, suggestionLocation);
+
+        suggestions.add({
+          'placeId': placeId,
+          'shortName': shortName,
+          'address': address,
+          'distance': routeInfo?['distance'] ?? 'N/A',
+          'duration': routeInfo?['duration'] ?? 'N/A',
+          'description': suggestion['description'],
+          'location': suggestionLocation, // Store the location directly here
+        });
+      }
+    }
+
     setState(() {
       _isLoading = false;
-      _suggestions = json['predictions'];
+      _suggestions = suggestions;
     });
   }
 
-  void _getLatLngFromPlaceId(String placeId) async {
+  Future<LatLng?> _getLatLngFromPlaceId(String placeId) async {
     final String apiKey = ApiKeys.googleMapsApiKey;
     final String url =
         'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$apiKey';
 
     var response = await http.get(Uri.parse(url));
     var json = jsonDecode(response.body);
-    var location = json['result']['geometry']['location'];
-    LatLng selectedLocation = LatLng(location['lat'], location['lng']);
-
-    widget.onLocationSelected(selectedLocation);
+    if (json['status'] == 'OK') {
+      var location = json['result']['geometry']['location'];
+      return LatLng(location['lat'], location['lng']);
+    }
+    return null;
   }
 
   @override
@@ -78,16 +99,21 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
         // Caja de texto de búsqueda
         Material(
           elevation: 5.0,
-          shadowColor: Colors.grey,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(30),
           child: TextField(
             controller: _controller,
-            decoration: const InputDecoration(
-              hintText: 'Buscar una dirección...',
-              prefixIcon: Icon(Icons.search),
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(
-                  vertical: 15, horizontal: 20),
+            style: TextStyle(color: AddressSearchColors.suggestionColor),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: AddressSearchColors.backgroundColor,
+              hintText: '¿Adónde vamos?',
+              hintStyle: TextStyle(color: AddressSearchColors.labelColor),
+              prefixIcon: Icon(Icons.search, color: AddressSearchColors.labelColor),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(30),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
             ),
             onChanged: (value) {
               if (value.isNotEmpty) {
@@ -105,36 +131,35 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             padding: const EdgeInsets.all(8.0),
             child: CircularProgressIndicator(),
           ),
-        // Contenedor de sugerencias
         if (_suggestions.isNotEmpty)
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             padding: EdgeInsets.all(8),
-            height: 200,
+            height: 350,
             decoration: BoxDecoration(
-              color: Colors.white, // Fondo blanco
+              color: AddressSearchColors.backgroundColor,
               borderRadius: BorderRadius.circular(10),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.grey.withOpacity(0.5),
-                  spreadRadius: 2,
-                  blurRadius: 5,
-                  offset: Offset(0, 3), // Sombra hacia abajo
-                ),
-              ],
             ),
             child: ListView.builder(
               itemCount: _suggestions.length,
               itemBuilder: (context, index) {
+                var suggestion = _suggestions[index];
                 return ListTile(
-                  title: Text(_suggestions[index]['description']),
-                  onTap: () {
-                    String placeId = _suggestions[index]['place_id'];
-                    _controller.text = _suggestions[index]['description'];
+                  title: Text(suggestion['shortName'],
+                      style: TextStyle(color: AddressSearchColors.suggestionColor, fontWeight: FontWeight.bold)),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(suggestion['address'], style: TextStyle(color: AddressSearchColors.suggestionColor)),
+                      Text('${suggestion['distance']}', style: TextStyle(color: Colors.grey)),
+                    ],
+                  ),
+                  onTap: () async {
+                    _controller.text = suggestion['description'];
                     setState(() {
                       _suggestions = [];
                     });
-                    _getLatLngFromPlaceId(placeId);
+                    widget.onLocationSelected(suggestion['location']); // Pass the stored location directly
                   },
                 );
               },

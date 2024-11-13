@@ -1,4 +1,3 @@
-//Archivo que se ejecuta al iniciar la aplicación
 import 'imports.dart';
 
 void main() async {
@@ -17,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: LoginPage(),
+      home: InitialScreen(), // Usa InitialScreen como la pantalla de inicio
     );
   }
 }

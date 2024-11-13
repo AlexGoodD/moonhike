@@ -3,7 +3,7 @@
     "elementType": "geometry",
     "stylers": [
       {
-        "color": "#242f3e"
+        "color": "#272E3A"
       }
     ]
   },
@@ -73,7 +73,7 @@
     "elementType": "geometry",
     "stylers": [
       {
-        "color": "#263c3f"
+        "color": "#215341"
       }
     ]
   },
@@ -109,7 +109,7 @@
     "elementType": "labels.icon",
     "stylers": [
       {
-        "visibility": "off"
+        "visibility": "on"
       }
     ]
   },
@@ -154,7 +154,7 @@
     "elementType": "labels",
     "stylers": [
       {
-        "visibility": "off"
+        "visibility": "on"
       }
     ]
   },
