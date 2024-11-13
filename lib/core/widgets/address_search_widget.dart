@@ -34,6 +34,8 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   }
 
   void _getSuggestions(String input) async {
+    if (input.isEmpty) return;
+
     final String apiKey = ApiKeys.googleMapsApiKey;
     if (_currentPosition == null) return;
 
@@ -49,6 +51,14 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
     var response = await http.get(Uri.parse(url));
     var json = jsonDecode(response.body);
+
+    if (_controller.text.isEmpty) {
+      setState(() {
+        _isLoading = false;
+        _suggestions = [];
+      });
+      return;
+    }
 
     List<Map<String, dynamic>> suggestions = [];
     for (var suggestion in json['predictions']) {
@@ -72,10 +82,17 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
       }
     }
 
-    setState(() {
-      _isLoading = false;
-      _suggestions = suggestions;
-    });
+    if (_controller.text.isNotEmpty) {
+      setState(() {
+        _isLoading = false;
+        _suggestions = suggestions;
+      });
+    } else {
+      setState(() {
+        _isLoading = false;
+        _suggestions = [];
+      });
+    }
   }
 
   Future<LatLng?> _getLatLngFromPlaceId(String placeId) async {
@@ -92,49 +109,68 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     return null;
   }
 
+  void _clearSearch() {
+    _controller.clear();
+    setState(() {
+      _suggestions = [];
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Caja de texto de búsqueda
+        // Barra de búsqueda con botón "x"
         Material(
           elevation: 5.0,
           borderRadius: BorderRadius.circular(30),
-          child: TextField(
-            controller: _controller,
-            style: TextStyle(color: AddressSearchColors.suggestionColor),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: AddressSearchColors.backgroundColor,
-              hintText: '¿Adónde vamos?',
-              hintStyle: TextStyle(color: AddressSearchColors.labelColor),
-              prefixIcon: Icon(Icons.search, color: AddressSearchColors.labelColor),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide.none,
+          child: Stack(
+            alignment: Alignment.centerRight,
+            children: [
+              TextField(
+                controller: _controller,
+                style: TextStyle(color: AddressSearchColors.suggestionColor),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: AddressSearchColors.backgroundColor,
+                  hintText: '¿Adónde vamos?',
+                  hintStyle: TextStyle(color: AddressSearchColors.labelColor),
+                  prefixIcon: Icon(Icons.search, color: AddressSearchColors.labelColor),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: EdgeInsets.only(left: 20, right: 45, top: 15, bottom: 15), //Evita que sobrepase al botón de "x"
+                ),
+                onChanged: (value) {
+                  if (value.isNotEmpty) {
+                    _getSuggestions(value);
+                  } else {
+                    setState(() {
+                      _suggestions = [];
+                    });
+                  }
+                },
               ),
-              contentPadding: EdgeInsets.symmetric(vertical: 15, horizontal: 20),
-            ),
-            onChanged: (value) {
-              if (value.isNotEmpty) {
-                _getSuggestions(value);
-              } else {
-                setState(() {
-                  _suggestions = [];
-                });
-              }
-            },
+              // Botón "x" para limpiar el texto
+              if (_controller.text.isNotEmpty)
+                IconButton(
+                  icon: Icon(Icons.clear, color: AddressSearchColors.labelColor),
+                  onPressed: _clearSearch,
+                ),
+            ],
           ),
         ),
+        /*
         if (_isLoading)
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: CircularProgressIndicator(),
-          ),
+          ),*/
         if (_suggestions.isNotEmpty)
           Container(
             margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
-            padding: EdgeInsets.all(8),
+            padding: EdgeInsets.all(0),
             height: 350,
             decoration: BoxDecoration(
               color: AddressSearchColors.backgroundColor,

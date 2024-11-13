@@ -11,6 +11,8 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
   String _errorMessage = '';
 
   Future<void> _register() async {
@@ -21,11 +23,24 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
+
     try {
       UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
+
+      // Si el registro es exitoso, redirige a la página de inicio de sesión (Para verificar credenciales)
+      // Obtener el UID del usuario
+      String uid = userCredential.user!.uid;
+
+      // Guardar los datos adicionales en Firestore
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'name': _nameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'createdAt': FieldValue.serverTimestamp(),
+      });
 
       // Si el registro es exitoso, redirige a la página de inicio de sesión (Para verificar credenciales)
       Navigator.pushReplacement(
@@ -50,8 +65,19 @@ class _RegisterPageState extends State<RegisterPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             TextField(
+              controller: _nameController,
+              decoration: InputDecoration(labelText: 'Nombre Completo'),
+            ),
+            SizedBox(height: 10),
+            TextField(
               controller: _emailController,
               decoration: InputDecoration(labelText: 'Correo Electrónico'),
+            ),
+            SizedBox(height: 10),
+            TextField(
+              controller: _phoneController,
+              decoration: InputDecoration(labelText: 'Número Telefónico'),
+              keyboardType: TextInputType.phone,
             ),
             SizedBox(height: 10),
             TextField(

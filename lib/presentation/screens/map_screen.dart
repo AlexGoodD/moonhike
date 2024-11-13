@@ -128,6 +128,7 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
+  /*
   void _checkAuthentication() {
     FirebaseAuth.instance.authStateChanges().listen((User? user) {
       if (user == null) {
@@ -138,7 +139,7 @@ class _MapScreenState extends State<MapScreen> {
         );
       }
     });
-  }
+  }*/
 
   @override
   Widget build(BuildContext context) {

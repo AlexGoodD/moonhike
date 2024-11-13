@@ -11,6 +11,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   int _selectedIndex = 3; // Índice de la pantalla actual (Perfil)
   Map<String, dynamic>? userData; // Variable para almacenar los datos del usuario de Firestore
   bool isLoading = true; // Bandera para controlar la carga
+  final UserService userService = UserService(); // Instancia de UserService
 
   int reportCount = 0;
 
@@ -113,6 +114,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
       case 3:
         // Ya estás en la pantalla de perfil
         break;
+    }
+  }
+
+  Future<void> _logout() async {
+    try {
+      await userService.logout(context); // Llama al método logout de UserService
+
+      // Redirige al LoginPage y elimina todas las pantallas anteriores de la pila
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+            (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al cerrar sesión: $e')),
+      );
     }
   }
 
@@ -219,10 +237,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             children: [
                               IconButton(
                                 icon: Icon(Icons.logout, color: Colors.white), // Color del ícono de logout
-                                onPressed: () async {
-                                  await FirebaseAuth.instance.signOut();
-                                  Navigator.pushReplacementNamed(context, '/login'); // Redirige a la página de login
-                                },
+                                onPressed: _logout,
                               ),
                             ],
                           ),
@@ -240,10 +255,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.center, // Centra el contenido horizontalmente
                                 children: [
                                   SizedBox(height: 50), // Espacio para la imagen de perfil
                                   Text(
                                     userData?['name'] ?? 'Nombre del Usuario',
+                                    textAlign: TextAlign.center, // Centra el texto
                                     style: TextStyle(
                                       fontSize: 26,
                                       fontWeight: FontWeight.w800,
@@ -350,7 +367,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(builder: (context) => AccountConfigScreen()), // Reemplaza con tu widget de pantalla de configuración
-                            );
+                            ).then((_) {
+                              // Refresca los datos cuando regresas a ProfileScreen
+                              _fetchUserData();
+                            });
                           },
                         ),
                         _buildSettingsButton(

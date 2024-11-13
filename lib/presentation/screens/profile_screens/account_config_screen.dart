@@ -162,7 +162,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
                     setState(() {
                       selectedAvatar = avatarPath;
                     });
-                    _updateAvatarInFirestore(avatarPath);
+                    //_updateAvatarInFirestore(avatarPath);
                   },
                   child: Container(
                     height: 70, // Tamaño más pequeño para los rectángulos
@@ -219,6 +219,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
     );
   }
 
+  /*Evitar saturación de notificaciones al cambiar de avatar
   Future<void> _updateAvatarInFirestore(String avatarPath) async {
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -235,7 +236,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
         SnackBar(content: Text('Error al actualizar el avatar: $e')),
       );
     }
-  }
+  }*/
 
   Future<void> _updateUserData() async {
     try {
@@ -245,6 +246,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
           'name': _nameController.text.trim(),
           'email': _emailController.text.trim(),
           'phone': _phoneController.text.trim(),
+          'profile_image': selectedAvatar, // Actualiza el avatar junto con los otros datos
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Datos actualizados correctamente')),
