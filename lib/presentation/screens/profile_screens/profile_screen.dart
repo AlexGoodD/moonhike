@@ -143,9 +143,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       children: [
                         // Barra superior con título y botón de logout
                         Padding(
-                          padding: EdgeInsets.only(top: 30.0), // Ajusta el valor según la separación deseada
+                          padding: EdgeInsets.only(top: 31.0), // Ajusta el valor según la separación deseada
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
                               IconButton(
                                 icon: Icon(Icons.logout, color: Colors.white), // Color del ícono de logout
