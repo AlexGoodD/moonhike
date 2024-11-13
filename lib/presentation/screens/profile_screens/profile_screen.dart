@@ -222,15 +222,53 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             Positioned(
                               top: -10,
-                              child: CircleAvatar(
-                                radius: 60,
-                                backgroundColor: const Color.fromARGB(255, 132, 149, 233),
-                                child: CircleAvatar(
-                                  radius: 56,
-                                  backgroundImage: NetworkImage(
-                                    user?.photoURL ?? 'https://picsum.photos/219/202',
-                                  ),
-                                ),
+                              child: FutureBuilder<DocumentSnapshot>(
+                                future: FirebaseFirestore.instance
+                                    .collection('users')
+                                    .doc(FirebaseAuth.instance.currentUser?.uid)
+                                    .get(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState == ConnectionState.waiting) {
+                                    return CircleAvatar(
+                                      radius: 60,
+                                      backgroundColor: const Color.fromARGB(255, 132, 149, 233),
+                                      child: CircleAvatar(
+                                        radius: 56,
+                                        backgroundColor: const Color.fromARGB(255, 15, 14, 14),
+                                        child: CircularProgressIndicator(), // Indicador de carga
+                                      ),
+                                    );
+                                  }
+
+                                  if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
+                                    return CircleAvatar(
+                                      radius: 60,
+                                      backgroundColor: const Color.fromARGB(255, 132, 149, 233),
+                                      child: CircleAvatar(
+                                        radius: 56,
+                                        backgroundImage: NetworkImage(
+                                          user?.photoURL ?? 'https://picsum.photos/219/202',
+                                        ),
+                                      ),
+                                    );
+                                  }
+
+                                  final userData = snapshot.data!.data() as Map<String, dynamic>?;
+                                  final profileImage = userData?['profile_image'];
+
+                                  return CircleAvatar(
+                                    radius: 60,
+                                    backgroundColor: const Color.fromARGB(255, 132, 149, 233),
+                                    child: CircleAvatar(
+                                      radius: 56,
+                                      backgroundImage: profileImage != null
+                                          ? AssetImage(profileImage) // Usa la imagen de los assets si existe
+                                          : NetworkImage(
+                                              user?.photoURL ?? 'https://picsum.photos/219/202',
+                                            ) as ImageProvider, // URL predeterminada
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ],

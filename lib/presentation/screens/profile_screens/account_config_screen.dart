@@ -35,64 +35,42 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Configuración de cuenta'),
-        backgroundColor: paletteColors.firstColor,
-      ),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
+            colors: [AppColors.backgroundTop, AppColors.backgroundBottom],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              paletteColors.firstColor, // Reemplaza con el color de inicio del gradiente
-              paletteColors.secondColor,  // Reemplaza con el color final del gradiente
-            ],
           ),
         ),
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16.0),
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center, // Centrar el contenido
             children: [
-              Text(
-                'Selecciona tu avatar:',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 10),
-              GridView.builder(
-                shrinkWrap: true,
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 15,
-                  mainAxisSpacing: 15,
-                ),
-                itemCount: 4, // Número de avatares
-                itemBuilder: (context, index) {
-                  final avatarPath = 'assets/avatars/avatar${index + 1}.png';
-                  return GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedAvatar = avatarPath;
-                      });
-                      _updateAvatarInFirestore(avatarPath);
+              // Flecha para volver atrás y título
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
                     },
-                    child: Container(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: selectedAvatar == avatarPath ? Colors.blueAccent : Colors.grey.shade300,
-                          width: 3,
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(12),
-                        child: Image.asset(avatarPath, fit: BoxFit.cover),
-                      ),
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Configuración de cuenta',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
                     ),
-                  );
-                },
+                  ),
+                ],
               ),
+              SizedBox(height: 20),
+              _buildAvatarSelection(),
               SizedBox(height: 20),
               _buildTextField(_nameController, 'Nombre', Icons.person),
               SizedBox(height: 15),
@@ -101,23 +79,122 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
               _buildTextField(_phoneController, 'Teléfono', Icons.phone),
               SizedBox(height: 25),
               Center(
-                child: ElevatedButton(
-                  onPressed: _updateUserData,
-                  style: ElevatedButton.styleFrom(
-                    foregroundColor: Colors.blueAccent,
-                    padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+                child: Stack(
+                  children: [
+                    Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xFF8E2DE2), Color(0xFF4A00E0)], // Colores del gradiente
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.purple.withOpacity(0.4),
+                            offset: Offset(0, 4),
+                            blurRadius: 6,
+                          ),
+                        ],
+                      ),
+                      child: SizedBox(height: 55), // Altura del botón
                     ),
-                  ),
-                  child: Text(
-                    'Guardar cambios',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                    Positioned.fill(
+                      child: ElevatedButton(
+                        onPressed: _updateUserData,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: Text(
+                          'Guardar cambios',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatarSelection() {
+    return Center(
+      child: Container(
+        width: MediaQuery.of(context).size.width * 0.83, // Ajusta el ancho para centrar mejor
+        padding: EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          color: AppColors.profileCard, // Fondo sutil del rectángulo general
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center, // Centrar el texto
+          children: [
+            Text(
+              'Selecciona tu avatar',
+              style: TextStyle(
+                fontSize: 23,
+                fontWeight: FontWeight.w500,
+                color: const Color.fromARGB(159, 230, 213, 255),
+              ),
+              textAlign: TextAlign.center, // Centrar el texto
+            ),
+            SizedBox(height: 10),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: NeverScrollableScrollPhysics(),
+              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 10, // Reducir el espacio entre columnas
+                mainAxisSpacing: 10, // Reducir el espacio entre filas
+              ),
+              itemCount: 4, // Número de avatares
+              itemBuilder: (context, index) {
+                final avatarPath = 'assets/avatars/avatar${index + 1}.png';
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      selectedAvatar = avatarPath;
+                    });
+                    _updateAvatarInFirestore(avatarPath);
+                  },
+                  child: Container(
+                    height: 70, // Tamaño más pequeño para los rectángulos
+                    width: 70,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(15),
+                      gradient: LinearGradient(
+                        colors: [Colors.black87, const Color.fromARGB(136, 25, 15, 73)], // Gradiente oscuro
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      border: Border.all(
+                        color: selectedAvatar == avatarPath ? const Color.fromARGB(255, 86, 81, 249) : Colors.transparent,
+                        width: 2,
+                      ),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.asset(avatarPath, fit: BoxFit.contain),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
@@ -128,11 +205,24 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
       controller: controller,
       decoration: InputDecoration(
         labelText: label,
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        labelStyle: TextStyle(color: Colors.white, fontWeight: FontWeight.w500),
+        prefixIcon: Icon(icon, color: const Color.fromARGB(255, 255, 255, 255)),
+        filled: true,
+        fillColor: Color.fromARGB(140, 15, 11, 32), // Color de fondo más oscuro
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12), // Esquinas más redondeadas
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: const Color.fromARGB(255, 86, 81, 249)),
         ),
       ),
+      style: TextStyle(color: Colors.white),
     );
   }
 
