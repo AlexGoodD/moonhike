@@ -4,6 +4,9 @@ export 'dart:async';
 export 'package:flutter/material.dart';
 export 'package:google_maps_flutter/google_maps_flutter.dart';
 export 'package:geolocator/geolocator.dart';
+export 'package:flutter_boxicons/flutter_boxicons.dart';
+export 'package:share_plus/share_plus.dart';
+export 'package:flutter/services.dart';
 //import 'package:provider/provider.dart';
 
 //Firebase
@@ -38,7 +41,10 @@ export 'package:moonhike/domain/use_cases/route_risk_calculator.dart';
 export 'package:moonhike/presentation/screens/map_screen.dart';
 export 'package:moonhike/presentation/screens/login_screen.dart';
 export 'package:moonhike/presentation/screens/map_controller.dart';
-export 'package:moonhike/presentation/screens/profile_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/profile_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/account_config_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/invite_friend_screen.dart';
+export 'package:moonhike/presentation/screens/profile_screens/privacy_screen.dart';
 export 'package:moonhike/presentation/screens/register.dart';
 export 'package:moonhike/presentation/widgets/floating_action_buttons.dart';
 export 'package:moonhike/presentation/widgets/map_widget.dart';
