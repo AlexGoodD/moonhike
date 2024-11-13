@@ -10,7 +10,7 @@ class MapWidget extends StatelessWidget {
     return GoogleMap(
       initialCameraPosition: CameraPosition(
         target: mapController.currentPosition ?? LatLng(25.6866, -100.3161),
-        zoom: 14.0,
+        zoom: 20.0,
       ),
       onMapCreated: (GoogleMapController controller) {
         mapController.controller = controller;

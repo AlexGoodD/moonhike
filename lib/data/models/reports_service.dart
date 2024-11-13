@@ -21,6 +21,10 @@ class ReportsService {
     });
   }
 
+  Future<void> deleteReport(String reportId) async {
+    await firestore.collection('reports').doc(reportId).delete();
+  }
+
   Stream<QuerySnapshot> listenToReportChanges() {
     return firestore.collection('reports').snapshots();
   }

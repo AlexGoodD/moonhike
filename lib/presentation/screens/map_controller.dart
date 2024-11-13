@@ -22,17 +22,24 @@ class MapController {
   final LocationService locationService = LocationService(); // Instancia de LocationService
   final UserService userService = UserService();
   final ReportsService reportsService = ReportsService();
-  final MapUIService mapUIService = MapUIService(calculateDistanceUseCase: CalculateDistanceUseCase());
   final DirectionsService directionsService = DirectionsService();
   final RouteRiskCalculator routeRiskCalculator = RouteRiskCalculator();
 
-  MapController({required this.routeRepository});
+  // Crea la instancia de MapUIService pasando `this` (MapController)
+  final MapUIService mapUIService;
 
-  void init() {
+
+  MapController({required this.routeRepository})
+      : mapUIService = MapUIService(
+    calculateDistanceUseCase: CalculateDistanceUseCase(),
+  );
+
+
+  void init(BuildContext context) {
     userService.getUserEmail().then((email) {
       userEmail = email;
     });
-    _listenToReportChanges();
+    _listenToReportChanges(context);
     // Iniciar la actualización de ubicación
     locationService.startLocationUpdates((LatLng position) {
       // Lógica adicional que se necesite al actualizar la posición
@@ -60,17 +67,19 @@ class MapController {
     await MapUtils.setMapController(mapControllerCompleter, controller);
   }
 
-  Future<void> loadReports() async {
+  Future<void> loadReports(BuildContext context) async {
     FirebaseFirestore firestore = FirebaseFirestore.instance;
     CollectionReference reports = firestore.collection('reports');
     QuerySnapshot querySnapshot = await reports.get();
 
     // Filtra los reportes de acuerdo a la ruta seleccionada antes de actualizar los marcadores y círculos
-    _updateMarkersAndCircles(querySnapshot);
-    updateUI?.call(); // Asegura que la UI se actualice con los reportes cargados
+    markers.clear();
+    circles.clear();
+    _updateMarkersAndCircles(querySnapshot, context, userEmail!);
+    updateUI?.call();
   }
 
-  Future<void> startRoutes(LatLng? destination) async {
+  Future<void> startRoutes(LatLng? destination, BuildContext context) async {
     if (currentPosition == null || destination == null) return;
     if (lastDestination != null && lastDestination == destination) {
       print("Destino sin cambios; no se cargan nuevas rutas.");
@@ -87,7 +96,7 @@ class MapController {
     }
 
     await _classifyAndDisplayRoutes(); // Clasifica y selecciona las rutas antes de cargar reportes
-    await loadReports(); // Carga los reportes una vez clasificadas las rutas
+    await loadReports(context); // Carga los reportes una vez clasificadas las rutas
     updateUI?.call(); // Actualiza la UI después de clasificar y cargar los datos
   }
 
@@ -137,38 +146,38 @@ class MapController {
 
   /*función getroutecolor migrada a route_risk_calculator*/
 
-  Future<void> selectRoute(int index) async {
+  Future<void> selectRoute(int index, BuildContext context) async {
     selectedRouteIndex = index;
     await updateRouteColors(); // Actualiza los colores para la ruta seleccionada
-    await loadReports(); // Carga y actualiza los reportes para la ruta seleccionada
+    await loadReports(context); // Carga y actualiza los reportes para la ruta seleccionada
     updateUI?.call(); // Actualiza la interfaz
   }
 
 
   // Métodos para navegar entre las rutas
-  void showNextRoute() {
+  void showNextRoute(BuildContext context) {
     if (routes.isNotEmpty) {
       selectedRouteIndex = (selectedRouteIndex + 1) % routes.length;
-      selectRoute(selectedRouteIndex);
+      selectRoute(selectedRouteIndex, context);
     }
     updateUI?.call(); // Actualiza la UI después de clasificar
   }
 
-  void showPreviousRoute() {
+  void showPreviousRoute(BuildContext context) {
     if (routes.isNotEmpty) {
       selectedRouteIndex = (selectedRouteIndex - 1 + routes.length) % routes.length;
-      selectRoute(selectedRouteIndex);
+      selectRoute(selectedRouteIndex, context);
     }
     updateUI?.call(); // Actualiza la UI después de clasificar
   }
 
   // Crea un reporte y actualiza marcadores/círculos en tiempo real
-  Future<void> createReport(String reportType, String note) async {
+  Future<void> createReport(String reportType, String note, BuildContext context) async {
     if (currentPosition == null) return;
     await reportsService.createReport(userEmail!, currentPosition!, reportType, note);
 
     // Escucha nuevamente los cambios de Firebase para actualizar en tiempo real
-    await loadReports();
+    await loadReports(context);
     updateUI?.call(); // Actualiza la interfaz en tiempo real
   }
 
@@ -178,27 +187,66 @@ class MapController {
   }
 
   // Método para actualizar los marcadores en tiempo real basado en los reportes
-  void _updateMarkersAndCircles(QuerySnapshot querySnapshot) {
+  void _updateMarkersAndCircles(QuerySnapshot querySnapshot, BuildContext context, String userEmail) {
     mapUIService.updateMarkersAndCircles(
-      querySnapshot,
-      markers,
-      circles,
-      routes,
-      selectedRouteIndex, // Aplica solo a la ruta seleccionada
-      updateUI!,
+      snapshot: querySnapshot,
+      markers: markers,
+      circles: circles,
+      routes: routes,
+      selectedRouteIndex: selectedRouteIndex,
+      updateUI: updateUI!,
+      context: context,
+      userEmail: userEmail!,
+      showDeleteDialog: showDeleteConfirmationDialog, // Pasamos la función de eliminación
     );
-
     // Forzar la actualización de colores inmediatamente después de recibir cambios
     updateRouteColors(); // Aplica el cambio de colores en tiempo real
     updateUI?.call(); // Fuerza la actualización de la UI
   }
 
-  void _listenToReportChanges() {
+  // Método de confirmación de eliminación
+  void showDeleteConfirmationDialog(BuildContext context, String reportId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Eliminar Reporte"),
+          content: Text("¿Estás seguro de que deseas eliminar este reporte?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text("Cancelar"),
+            ),
+            TextButton(
+              onPressed: () async {
+                // Llamar a la función de eliminación y luego recargar marcadores
+                await reportsService.deleteReport(reportId);
+
+                // Recargar los reportes para actualizar en tiempo real
+                markers.removeWhere((marker) => marker.markerId.value == 'report_$reportId');
+                circles.removeWhere((circle) => circle.circleId.value == 'danger_area_$reportId');
+                updateUI?.call(); // Actualiza la interfaz inmediatamente
+
+                /* Cargar y actualizar marcadores para que se refleje la eliminación
+                await loadReports(context);*/
+                updateUI?.call();
+                Navigator.of(context).pop();
+              },
+              child: Text("Eliminar"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _listenToReportChanges(BuildContext context) {
     reportsSubscription?.cancel();
     reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) async {
-      _updateMarkersAndCircles(snapshot);
+      _updateMarkersAndCircles(snapshot, context, userEmail!);
       await updateRouteColors(); // Asegura que los colores se actualicen en tiempo real
-      updateUI?.call(); // Fuerza la actualización de la UI
+      await loadReports(context); // Carga todos los reportes de nuevo
+      updateUI?.call(); // Fuerza la actualización de la UI después de cada cambio
     });
   }
 
@@ -209,20 +257,4 @@ class MapController {
       location: location,
     );
   }
-
-  /*
-  Future<void> logout(BuildContext context) async {
-    try {
-      await userService.logout(context);
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cerrar sesión')),
-      );
-    }
-  }
-   */
 }

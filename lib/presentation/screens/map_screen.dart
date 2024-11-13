@@ -71,7 +71,8 @@ class _MapScreenState extends State<MapScreen> {
       setState(() {});
     });
 
-    mapController.init();
+    // Pasa `context` aquí al llamar a `init`
+    mapController.init(context);
     _checkLocationPermission();
 
     mapController.locationService.startLocationUpdates((position) {
@@ -114,7 +115,7 @@ class _MapScreenState extends State<MapScreen> {
         mapController.locationService.currentPosition = userLocation;
       });
 
-      double zoomLevel = 15.0;
+      double zoomLevel = 19.0;
       mapController.controller?.animateCamera(CameraUpdate.newLatLngZoom(userLocation, zoomLevel));
     } catch (e) {
       print('Error al obtener la ubicación del usuario: $e');
@@ -167,7 +168,7 @@ class _MapScreenState extends State<MapScreen> {
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {
-                  await mapController.startRoutes(selectedLocation);
+                  await mapController.startRoutes(selectedLocation, context);
                   setState(() {});
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -183,7 +184,7 @@ class _MapScreenState extends State<MapScreen> {
                       onReportTypeSelected: (String reportType, String note) async {
                         Navigator.of(context).pop();
                         try {
-                          await mapController.createReport(reportType, note);
+                          await mapController.createReport(reportType, note, context);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error al crear reporte: $e')),
@@ -201,8 +202,8 @@ class _MapScreenState extends State<MapScreen> {
             bottom: isInfoTabOpen ? 160 : 50,
             right: 130,
             child: SelectRouteWidget(
-              showPreviousRoute: mapController.showPreviousRoute,
-              showNextRoute: mapController.showNextRoute,
+              showPreviousRoute: () => mapController.showPreviousRoute(context),
+              showNextRoute: () => mapController.showNextRoute(context),
             ),
           ),
         ],
