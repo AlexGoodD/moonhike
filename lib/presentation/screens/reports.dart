@@ -53,37 +53,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     }
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    // Navegación a la página correspondiente
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MapScreen()),
-        );
-        break;
-      case 1:
-      // Ya estás en la pantalla de reportes
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => SettingsScreen()),
-        );
-        break;
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
-        );
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -102,6 +71,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
           appBar: PreferredSize(
             preferredSize: Size.fromHeight(80), // Ajusta la altura del AppBar
             child: AppBar(
+              automaticallyImplyLeading: false, // Evita el botón de regreso automático
               title: Padding(
                 padding: EdgeInsets.only(top: 20.0), // Baja el texto más abajo
                 child: Text(
@@ -120,7 +90,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
           body: isLoading
               ? Center(child: CircularProgressIndicator())
               : userReports == null || userReports!.isEmpty
-              ? Center(child: Text('No has realizado reportes.'))
+              ? Center(
+            child: Text(
+              'No has realizado reportes',
+              style: TextStyle(
+                fontSize: 18, // Tamaño del texto
+                color: ReportsScreenColors.primaryFontColor, // Color del texto
+                fontWeight: FontWeight.bold, // Peso del texto
+              ),
+            ),
+          )
               : ListView.builder(
             itemCount: userReports!.length,
             itemBuilder: (context, index) {
@@ -192,8 +171,8 @@ class _ReportsScreenState extends State<ReportsScreen> {
             },
           ),
           bottomNavigationBar: CustomBottomNavigationBar(
-            currentIndex: _selectedIndex,
-            onTap: _onItemTapped,
+            currentIndex: 1, // Índice actual para la pantalla de Configuración
+            onTap: (index) {}, // No necesitas ninguna lógica extra aquí
           ),
         )
     );

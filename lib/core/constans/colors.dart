@@ -28,6 +28,14 @@ class ReportsScreenColors{
   static const secondaryFontColor = Colors.white;
 }
 
+class SettingsColor{
+  static const backgroundTop = Color.fromRGBO(47, 47, 97, 1);
+  static const backgroundBottom = Color.fromRGBO(31, 32, 52, 1);
+  static const iconColor = Color.fromRGBO(153, 151, 188, 1.0);
+  static const primaryFontColor = Colors.white;
+  static const secondaryFontColor = Colors.white;
+}
+
 class AddressSearchColors{
   static const backgroundColor = Color.fromRGBO(63, 64, 90, 1.0);
   static const labelColor = Color.fromRGBO(153, 151, 188, 1.0);

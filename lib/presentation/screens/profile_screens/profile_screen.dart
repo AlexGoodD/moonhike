@@ -85,37 +85,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return reportSnapshot.size; // Devuelve el número de reportes
   }
 
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    // Navegación a la página correspondiente
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MapScreen()),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ReportsScreen()),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => SettingsScreen()),
-        );
-        break;
-      case 3:
-        // Ya estás en la pantalla de perfil
-        break;
-    }
-  }
-
   Future<void> _logout() async {
     try {
       await userService.logout(context); // Llama al método logout de UserService
@@ -123,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       // Redirige al LoginPage y elimina todas las pantallas anteriores de la pila
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => InitialScreen()),
             (Route<dynamic> route) => false, // Elimina todas las rutas anteriores
       );
     } catch (e) {
@@ -398,8 +367,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ),
       bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        currentIndex: 3, // Índice actual para la pantalla de Configuración
+        onTap: (index) {}, // No necesitas ninguna lógica extra aquí
       ),
     );
   }

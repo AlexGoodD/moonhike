@@ -6,54 +6,51 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  int _selectedIndex = 2; // Índice de la pantalla actual (Settings)
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-
-    // Navegación a la página correspondiente
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MapScreen()),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ReportsScreen()),
-        );
-        break;
-      case 2:
-      // Ya estás en la pantalla de configuración
-        break;
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
-        );
-        break;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Configuración'),
-      ),
-      body: Center(
-        child: Text(
-          'Esta es la pantalla de configuración.',
-          style: TextStyle(fontSize: 18),
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            ReportsScreenColors.backgroundTop, // Color inicial del degradado
+            ReportsScreenColors.backgroundBottom, // Color final del degradado
+          ],
         ),
       ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        // Hace el fondo del Scaffold transparente
+        appBar: PreferredSize(
+          preferredSize: Size.fromHeight(80), // Ajusta la altura del AppBar
+          child: AppBar(
+            automaticallyImplyLeading: false,
+            // Evita el botón de regreso automático
+            title: Padding(
+              padding: EdgeInsets.only(top: 20.0), // Baja el texto más abajo
+              child: Text(
+                'Configuración',
+                style: TextStyle(
+                  color: Colors.white, // Texto en color blanco
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            backgroundColor: Colors.transparent,
+            // Hace el AppBar transparente
+            elevation: 0, // Remueve la sombra del AppBar
+          ),
+        ),
+        body: Center(
+
+        ),
+        bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: 2, // Índice actual para la pantalla de Configuración
+          onTap: (index) {}, // No necesitas ninguna lógica extra aquí
+        ),
       ),
     );
   }

@@ -1,11 +1,5 @@
 //Este archivo contiene la pantalla de login
-
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:moonhike/presentation/screens/map_screen.dart'; // Asegúrate de que este es el archivo correcto
-import 'package:shared_preferences/shared_preferences.dart';
-import 'register.dart'; // Tu archivo de registro
-import 'package:moonhike/core/constans/colors.dart'; // Asegúrate de que esto está correcto
+import 'package:moonhike/imports.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -17,6 +11,7 @@ class _LoginPageState extends State<LoginPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   String _errorMessage = '';
+  bool _isPasswordVisible = false;
 
   @override
   void initState() {
@@ -32,9 +27,16 @@ class _LoginPageState extends State<LoginPage> {
       // Si ya hay una sesión activa, redirige a MapScreen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => MapScreen()), // Pantalla principal
+        MaterialPageRoute(
+            builder: (context) => MapScreen()), // Pantalla principal
       );
     }
+  }
+
+  void _togglePasswordVisibility() {
+    setState(() {
+      _isPasswordVisible = !_isPasswordVisible;
+    });
   }
 
   Future<void> _login() async {
@@ -57,7 +59,8 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         _errorMessage = e.message ?? "Error desconocido";
       });
-      print('Error de autenticación: $e'); // Agrega esta línea para más detalles
+      print(
+          'Error de autenticación: $e'); // Agrega esta línea para más detalles
     }
   }
 
@@ -65,76 +68,129 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("")),
-      resizeToAvoidBottomInset: true, // Ajusta la pantalla al aparecer el teclado
+      appBar: AppBar(
+        title: Text(""), // Título vacío
+        backgroundColor: Colors.transparent, // Fondo transparente del AppBar
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: Colors.white), // Cambia el color del botón de regreso
+          onPressed: () => Navigator.of(context).pop(), // Acción al presionar el botón de regreso
+        ),
+        elevation: 0, // Elimina la sombra del AppBar
+      ),
+      backgroundColor: paletteColors.firstColor, // Color de fondo rojo
+      resizeToAvoidBottomInset: true,
+      // Ajusta la pantalla al aparecer el teclado
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(35.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch, // Estira los widgets horizontalmente
+          //crossAxisAlignment: CrossAxisAlignment.stretch,
+          // Estira los widgets horizontalmente
           children: [
-            SizedBox(height: 40), // Espacio superior
-            Text(
-              "Ingresa a tu cuenta",
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+            SizedBox(height: 25), // Espacio superior
+            Align(
+              alignment: Alignment.centerLeft, // Alinea el texto a la izquierda
+              child: Text(
+                'Inicio de sesión',
+                style: TextStyle(
+                  fontSize: 25,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
-              textAlign: TextAlign.left,
             ),
-            SizedBox(height: 20),
-            CircleAvatar(
-              radius: 50, // Tamaño del logo
-              backgroundColor: Colors.grey[300], // Color de fondo gris para indicar espacio del logo
-              child: Icon(Icons.person, size: 50, color: Colors.grey), // Icono temporal
-            ),
-            SizedBox(height: 20),
+            SizedBox(height: 30),
             TextField(
               controller: _emailController,
-              decoration: InputDecoration(labelText: 'Correo electrónico'),
+              decoration: InputDecoration(
+                labelText: 'Correo electrónico',
+                labelStyle: TextStyle(color: paletteColors.fourthColor),
+                // Cambia el color del texto del label
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: paletteColors.sevenColor),
+                  // Borde normal
+                  borderRadius: BorderRadius.circular(15), // Bordes redondeados
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: paletteColors.sevenColor),
+                  // Borde al enfocarse
+                  borderRadius: BorderRadius.circular(15),
+                ),
+              ),
+              style: TextStyle(color: Colors.white), // Color del texto dentro del campo
             ),
             SizedBox(height: 10),
             TextField(
               controller: _passwordController,
-              decoration: InputDecoration(labelText: 'Contraseña'),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _login,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.appColor, // Cambiado a backgroundColor
-                padding: EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              obscureText: !_isPasswordVisible,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                labelStyle: TextStyle(color: paletteColors.fourthColor),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: paletteColors.sevenColor),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: paletteColors.sevenColor),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                suffixIcon: IconButton(
+                  icon: Icon(
+                    _isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                    color: paletteColors.fourthColor,
+                  ),
+                  onPressed: _togglePasswordVisibility,
                 ),
               ),
-              child: Text("Iniciar Sesión", style: TextStyle(color: Colors.white)),
+              style: TextStyle(color: Colors.white), // Color del texto dentro del campo
             ),
+            SizedBox(height: 20),
+            SizedBox(
+              width: 250, // Ancho común para los botones
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [paletteColors.topColor, paletteColors.bottomColor],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: OutlinedButton(
+                  onPressed: () {
+                    _login();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    side: BorderSide(color: Colors.transparent), // Elimina el borde del botón
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Text(
+                      'Iniciar sesión',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
             SizedBox(height: 10),
-            if (_errorMessage.isNotEmpty) // Mostrar mensaje de error solo si hay alguno
+            if (_errorMessage
+                .isNotEmpty) // Mostrar mensaje de error solo si hay alguno
               Text(
                 _errorMessage,
                 style: TextStyle(color: Colors.red),
                 textAlign: TextAlign.center,
               ),
-            SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("¿No tienes una cuenta? "),
-                TextButton(
-                  onPressed: () {
-                    // Redirige al registro si no tiene cuenta
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RegisterPage()),
-                    );
-                  },
-                  child: Text("Regístrate"),
-                ),
-              ],
-            ),
           ],
         ),
       ),

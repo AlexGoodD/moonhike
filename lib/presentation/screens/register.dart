@@ -208,31 +208,48 @@ class _RegisterPageState extends State<RegisterPage> {
               style: TextStyle(color: Colors.white),
             ),
             SizedBox(height: 20),
-            // Botón de Registro
-            ElevatedButton(
-              onPressed: _register,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
-                padding: EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+            SizedBox(
+              width: 250, // Ancho común para los botones
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [paletteColors.topColor, paletteColors.bottomColor],
+                  ),
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: OutlinedButton(
+                  onPressed: () {
+                    _register();
+                  },
+                  style: OutlinedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    shadowColor: Colors.transparent,
+                    side: BorderSide(color: Colors.transparent), // Elimina el borde del botón
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.0),
+                    child: Text(
+                      'Registrarse',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
               ),
-              child: Text("Registrarse", style: TextStyle(color: Colors.white)),
             ),
             SizedBox(height: 10),
             // Mensaje de error
             Text(
               _errorMessage,
               style: TextStyle(color: Colors.red),
-            ),
-            SizedBox(height: 10),
-            // Botón para volver a la pantalla de login
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: Text("¿Ya tienes cuenta? Inicia sesión"),
             ),
           ],
         ),

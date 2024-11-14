@@ -9,12 +9,48 @@ class CustomBottomNavigationBar extends StatelessWidget {
     required this.onTap,
   });
 
+  void _navigateToScreen(int index, BuildContext context) {
+    Widget nextScreen;
+    switch (index) {
+      case 0:
+        nextScreen = MapScreen();
+        break;
+      case 1:
+        nextScreen = ReportsScreen();
+        break;
+      case 2:
+        nextScreen = SettingsScreen();
+        break;
+      case 3:
+        nextScreen = ProfileScreen();
+        break;
+      default:
+        return;
+    }
+
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) => nextScreen,
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+        transitionDuration: Duration(milliseconds: 200), // Duración de la animación
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BottomNavigationBar(
       currentIndex: currentIndex,
       onTap: (int index) {
-        onTap(index); // Llama a la función de callback 'onTap' para actualizar el índice
+        if (index != currentIndex) {
+          _navigateToScreen(index, context); // Navega solo si el índice cambia
+        }
       },
       type: BottomNavigationBarType.fixed,
       backgroundColor: paletteColors.secondColor, // Color de fondo de la barra
