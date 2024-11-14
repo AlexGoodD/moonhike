@@ -45,7 +45,7 @@ export 'package:moonhike/presentation/screens/profile_screens/profile_screen.dar
 export 'package:moonhike/presentation/screens/profile_screens/account_config_screen.dart';
 export 'package:moonhike/presentation/screens/profile_screens/invite_friend_screen.dart';
 export 'package:moonhike/presentation/screens/profile_screens/privacy_screen.dart';
-export 'package:moonhike/presentation/screens/register.dart';
+export 'package:moonhike/presentation/screens/register_screen.dart';
 export 'package:moonhike/presentation/widgets/floating_action_buttons.dart';
 export 'package:moonhike/presentation/widgets/map_widget.dart';
 export 'package:moonhike/presentation/widgets/report_dialog.dart';
@@ -53,8 +53,8 @@ export 'package:moonhike/presentation/widgets/map_ui_service.dart';
 export 'package:moonhike/presentation/widgets/route_info_tab.dart';
 export 'package:moonhike/presentation/widgets/select_route.dart';
 export 'package:moonhike/presentation/utils/map_utils.dart';
-export 'package:moonhike/presentation/screens/reports.dart';
-export 'package:moonhike/presentation/screens/settings.dart';
+export 'package:moonhike/presentation/screens/reports_screen.dart';
+export 'package:moonhike/presentation/screens/settings_screen.dart';
 export 'package:moonhike/presentation/screens/initial_screen.dart';
 
 
