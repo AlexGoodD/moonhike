@@ -1,6 +1,5 @@
 import 'package:moonhike/imports.dart';
 
-
 class ProfileScreen extends StatefulWidget {
   @override
   _ProfileScreenState createState() => _ProfileScreenState();
@@ -144,7 +143,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         return Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: AppColors.profileCard, // Ajusta este color para que coincida con tu tema
+            color: ProfileColors.profileCard, // Ajusta este color para que coincida con tu tema
             borderRadius: BorderRadius.only(
               topLeft: Radius.circular(20),
               topRight: Radius.circular(20),
@@ -219,8 +218,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       begin: Alignment.topCenter,
                       end: Alignment.bottomCenter,
                       colors: [
-                        AppColors.backgroundTop,
-                        AppColors.backgroundBottom,
+                        ProfileColors.backgroundTop,
+                        ProfileColors.backgroundBottom,
                       ],
                     ),
                   ),
@@ -251,7 +250,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               margin: EdgeInsets.only(top: 60), // Espacio para la imagen sobresaliente
                               padding: EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: AppColors.profileCard, // Fondo del rectángulo
+                                color: ProfileColors.profileCard, // Fondo del rectángulo
                                 borderRadius: BorderRadius.circular(16),
                               ),
                               child: Column(
@@ -415,8 +414,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: isReports
-              ? [Colors.black, AppColors.activityReports] // Degradado para "Reportes"
-              : [AppColors.activityDaysTop, AppColors.activityDaysBottom], // Degradado para "Días activos"
+              ? [Colors.black, ProfileColors.activityReports] // Degradado para "Reportes"
+              : [ProfileColors.activityDaysTop, ProfileColors.activityDaysBottom], // Degradado para "Días activos"
         ),
         borderRadius: BorderRadius.circular(12.0),
       ),
@@ -487,7 +486,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [AppColors.activityDaysTop, AppColors.activityDaysBottom], // Degradado para "Días activos"
+              colors: [ProfileColors.activityDaysTop, ProfileColors.activityDaysBottom], // Degradado para "Días activos"
             ),
             borderRadius: BorderRadius.circular(12.0),
           ),
@@ -539,7 +538,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Container(
       margin: EdgeInsets.symmetric(vertical: 4.0), // Espacio entre las cards
       decoration: BoxDecoration(
-        color: AppColors.generalCard, // Color de fondo de las cards
+        color: ProfileColors.generalCard, // Color de fondo de las cards
         borderRadius: BorderRadius.circular(12.0), // Bordes redondeados
       ),
       child: ListTile(

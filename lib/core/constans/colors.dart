@@ -8,8 +8,9 @@ class AppColors {
   static const routeSelected = Color.fromRGBO(35, 33, 138, 1.0);
   static const routeAlternative = Color.fromRGBO(35, 33, 138, 1.0);
   static const buttonIcon = Color.fromRGBO(94, 60, 229, 1);
+}
 
-  //profile screen colors
+class ProfileColors{
   static const backgroundTop = Color.fromRGBO(47, 47, 97, 1);
   static const backgroundBottom = Color.fromRGBO(31, 32, 52, 1);
   static const generalCard = Color.fromRGBO(55, 55, 95, 1);
@@ -17,6 +18,14 @@ class AppColors {
   static const activityDaysTop = Color.fromRGBO(90, 93, 146, 1);
   static const activityDaysBottom = Color.fromRGBO(59, 59, 160, 1);
   static const profileCard = Color.fromRGBO(24, 25, 40, 0.89);
+}
+
+class ReportsScreenColors{
+  static const backgroundTop = Color.fromRGBO(47, 47, 97, 1);
+  static const backgroundBottom = Color.fromRGBO(31, 32, 52, 1);
+  static const iconColor = Color.fromRGBO(153, 151, 188, 1.0);
+  static const primaryFontColor = Colors.white;
+  static const secondaryFontColor = Colors.white;
 }
 
 class AddressSearchColors{

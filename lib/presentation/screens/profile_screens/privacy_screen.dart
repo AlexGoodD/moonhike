@@ -55,7 +55,7 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
         height: double.infinity, // Extiende el contenedor hasta el final de la pantalla
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.backgroundTop, AppColors.backgroundBottom],
+            colors: [ProfileColors.backgroundTop, ProfileColors.backgroundBottom],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),

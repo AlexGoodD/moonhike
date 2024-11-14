@@ -11,7 +11,7 @@ void _showInviteFriendBottomSheet(BuildContext context) {
       return Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: AppColors.profileCard, // Ajusta este color para que coincida con tu tema
+          color: ProfileColors.profileCard, // Ajusta este color para que coincida con tu tema
           borderRadius: BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),

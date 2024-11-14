@@ -38,7 +38,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [AppColors.backgroundTop, AppColors.backgroundBottom],
+            colors: [ProfileColors.backgroundTop, ProfileColors.backgroundBottom],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -131,7 +131,7 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(20),
-          color: AppColors.profileCard, // Fondo sutil del rectángulo general
+          color: ProfileColors.profileCard, // Fondo sutil del rectángulo general
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center, // Centrar el texto

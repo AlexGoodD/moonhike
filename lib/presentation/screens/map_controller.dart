@@ -116,18 +116,7 @@ class MapController {
         safestRouteIndex = i;
       }
 
-      //Color routeColor = routeRiskCalculator.getRouteColor(riskScore);
-
-      // Asegurarse de que se obtiene el color correcto para cada puntaje de riesgo
       Color routeColor = routeRiskCalculator.getRouteColor(riskScore);
-      print("Ruta $i tiene puntaje de riesgo $riskScore y color asignado $routeColor.");
-      polylines.add(Polyline(
-        polylineId: PolylineId('route_$i'),
-        points: routes[i],
-        color: routeColor,
-        width: 6,
-        patterns: [PatternItem.dot, PatternItem.gap(15)],
-      ));
 
     selectedRouteIndex = safestRouteIndex;
     updateUI?.call();
