@@ -210,30 +210,45 @@ class MapController {
   // Método de confirmación de eliminación
   void showDeleteConfirmationDialog(BuildContext parentContext, String reportId) {
     showDialog(
-      context: parentContext, // Usar el contexto de un widget superior
+      context: parentContext,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Eliminar Reporte"),
-          content: Text("¿Estás seguro de que deseas eliminar este reporte?"),
+          backgroundColor: paletteColors.secondColor, // Color de fondo del diálogo
+          title: Text(
+            "Eliminar reporte",
+            style: TextStyle(
+              color: Colors.white, // Color del texto del título
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            "¿Estás seguro de que deseas eliminar este reporte?",
+            style: TextStyle(
+              color: paletteColors.fourthColor, // Color del texto del contenido
+            ),
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text("Cancelar"),
+              child: Text(
+                "Cancelar",
+                style: TextStyle(color: paletteColors.cancelColor,               fontWeight: FontWeight.normal,
+                ), // Color del botón "Cancelar"
+              ),
             ),
             TextButton(
               onPressed: () async {
-                // Mantener el contexto antes del await
                 Navigator.of(context).pop();
-
-                // Eliminar el reporte y luego recargar los marcadores
                 await reportsService.deleteReport(reportId);
-
-                // Remover marcador y círculo asociados con el reporte
                 markers.removeWhere((marker) => marker.markerId.value == 'report_$reportId');
                 circles.removeWhere((circle) => circle.circleId.value == 'danger_area_$reportId');
-                updateUI?.call(); // Actualiza la interfaz
+                updateUI?.call();
               },
-              child: Text("Eliminar"),
+              child: Text(
+                "Eliminar",
+                style: TextStyle(color: paletteColors.deleteColor,               fontWeight: FontWeight.bold,
+                ), // Color del botón "Eliminar"
+              ),
             ),
           ],
         );

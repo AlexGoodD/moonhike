@@ -50,6 +50,8 @@ class paletteColors {
   static const fifthColor = Color.fromRGBO(178, 166, 190, 1.0); //b3a6be
   static const sixthColor = Color.fromRGBO(254, 233, 206, 1.0); //fee9ce
   static const sevenColor = Color.fromRGBO(81, 78, 113, 1.0); //fee9ce
+  static const deleteColor = Color.fromRGBO(239, 17, 17, 1.0);
+  static const cancelColor = Color.fromRGBO(153, 151, 188, 1.0); //9997bc
   static const topColor = Color.fromRGBO(122, 88, 247, 1.0);
   static const bottomColor = Color.fromRGBO(95, 60, 229, 1.0);
   static const borderColor = Color.fromRGBO(118, 89, 231, 1.0);

@@ -107,8 +107,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
               final reportData = report.data() as Map<String, dynamic>;
               final reportId = report.id; // ID del reporte
               final reportType = reportData['type'] ?? 'Sin especificar';
-              final location = reportData['location'] as GeoPoint;
-              final locationText = '${location.latitude}, ${location.longitude}';
               final timestamp = reportData['timestamp'] as Timestamp;
               final formattedDate = DateFormat('dd/MM/yyyy').format(timestamp.toDate());
 
@@ -146,13 +144,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'Ubicación: $locationText',
-                      style: TextStyle(
-                        color: ReportsScreenColors.secondaryFontColor,
-                        fontSize: 16,
-                      ),
-                    ),
                     Text(
                       'Fecha: $formattedDate',
                       style: TextStyle(
