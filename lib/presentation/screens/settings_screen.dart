@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:moonhike/imports.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -6,6 +7,7 @@ class SettingsScreen extends StatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
+  bool notificationsEnabled = true; // Estado inicial de las notificaciones
 
   @override
   Widget build(BuildContext context) {
@@ -21,13 +23,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       child: Scaffold(
-        backgroundColor: Colors.transparent,
-        // Hace el fondo del Scaffold transparente
+        backgroundColor: Colors.transparent, // Hace el fondo del Scaffold transparente
         appBar: PreferredSize(
           preferredSize: Size.fromHeight(80), // Ajusta la altura del AppBar
           child: AppBar(
-            automaticallyImplyLeading: false,
-            // Evita el botón de regreso automático
+            automaticallyImplyLeading: false, // Evita el botón de regreso automático
             title: Padding(
               padding: EdgeInsets.only(top: 20.0), // Baja el texto más abajo
               child: Text(
@@ -39,13 +39,133 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 ),
               ),
             ),
-            backgroundColor: Colors.transparent,
-            // Hace el AppBar transparente
+            backgroundColor: Colors.transparent, // Hace el AppBar transparente
             elevation: 0, // Remueve la sombra del AppBar
           ),
         ),
-        body: Center(
-
+        body: ListView(
+          padding: EdgeInsets.all(16.0),
+          children: [
+            // Sección de cuenta
+            Text(
+              'Cuenta',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 10),
+            ListTile(
+              leading: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10), // Curva en los bordes
+                ),
+                padding: EdgeInsets.all(8.0), // Espaciado alrededor del ícono
+                child: Icon(Icons.person, color: AppColors.buttonIcon),
+              ),
+              title: Text('Configuración de cuenta', style: TextStyle(color: Colors.white)),
+              subtitle: Text('Actualiza y edita tu información personal', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => AccountConfigScreen()), // Navegación a la página de configuración de cuenta
+                );
+              },
+              tileColor: ReportsScreenColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            SizedBox(height: 20),
+            // Sección General
+            Text(
+              'General',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 10),
+            ListTile(
+              leading: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.all(8.0),
+                child: Icon(Icons.lock, color: AppColors.buttonIcon),
+              ),
+              title: Text('Permisos', style: TextStyle(color: Colors.white)),
+              subtitle: Text('Controla qué permisos obtiene MoonHike', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
+              onTap: () {
+                // Lógica para controlar permisos de la app (puedes agregar un diálogo o navegación a otra página)
+              },
+              tileColor: ReportsScreenColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            SizedBox(height: 10),
+            ListTile(
+              leading: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.all(8.0),
+                child: Icon(Boxicons.bxs_bell, color: AppColors.buttonIcon),
+              ),
+              title: Text('Notificaciones', style: TextStyle(color: Colors.white)),
+              subtitle: Text('Permite recibir o denegar notificaciones', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
+              trailing: Switch(
+                value: notificationsEnabled,
+                onChanged: (bool value) {
+                  setState(() {
+                    notificationsEnabled = value;
+                    // Lógica para activar/desactivar notificaciones
+                  });
+                },
+                activeColor: const Color.fromARGB(255, 227, 215, 255),
+              ),
+              tileColor: ReportsScreenColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            SizedBox(height: 20),
+            // Sección Personalización (pendiente)
+            Text(
+              'Personalización',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            SizedBox(height: 10),
+            ListTile(
+              leading: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: EdgeInsets.all(8.0),
+                child: Icon(Icons.brush, color: AppColors.buttonIcon),
+              ),
+              title: Text('Personalización', style: TextStyle(color: Colors.white)),
+              subtitle: Text('Cambia algunos aspectos visuales', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
+              onTap: () {
+                // Lógica pendiente
+              },
+              tileColor: ReportsScreenColors.card,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: CustomBottomNavigationBar(
           currentIndex: 2, // Índice actual para la pantalla de Configuración
@@ -55,4 +175,3 @@ class _SettingsScreenState extends State<SettingsScreen> {
     );
   }
 }
-
