@@ -16,33 +16,35 @@ class _ReportDialogState extends State<ReportDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text('Selecciona el tipo de reporte'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          ListTile(
-            leading: Icon(Icons.lightbulb),
-            title: Text('Mala iluminación'),
-            onTap: () => widget.onReportTypeSelected('Mala iluminación', note),
-          ),
-          ListTile(
-            leading: Icon(Icons.warning),
-            title: Text('Inseguridad'),
-            onTap: () => widget.onReportTypeSelected('Inseguridad', note),
-          ),
-          ListTile(
-            leading: Icon(Icons.directions_walk),
-            title: Text('Interés peatonal'),
-            onTap: () => widget.onReportTypeSelected('Poca vialidad peatonal', note),
-          ),
-          TextField(
-            decoration: InputDecoration(labelText: 'Nota (opcional)'),
-            onChanged: (value) {
-              setState(() {
-                note = value;
-              });
-            },
-          ),
-        ],
+      content: SingleChildScrollView( // Agregado para evitar overflow
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.lightbulb),
+              title: Text('Mala iluminación'),
+              onTap: () => widget.onReportTypeSelected('Mala iluminación', note),
+            ),
+            ListTile(
+              leading: Icon(Icons.warning),
+              title: Text('Inseguridad'),
+              onTap: () => widget.onReportTypeSelected('Inseguridad', note),
+            ),
+            ListTile(
+              leading: Icon(Icons.directions_walk),
+              title: Text('Interés peatonal'),
+              onTap: () => widget.onReportTypeSelected('Poca vialidad peatonal', note),
+            ),
+            TextField(
+              decoration: InputDecoration(labelText: 'Nota (opcional)'),
+              onChanged: (value) {
+                setState(() {
+                  note = value;
+                });
+              },
+            ),
+          ],
+        ),
       ),
       actions: [
         TextButton(
