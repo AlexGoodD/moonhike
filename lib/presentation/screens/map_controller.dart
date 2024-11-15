@@ -15,6 +15,14 @@ class MapController {
   int selectedRouteIndex = 0; //Selector de rutas
   VoidCallback? updateUI; // Callback para actualizar la UI
   List<Map<String, dynamic>?> routeInfos = [];
+  Marker? selectedLocationMarker;
+  String? distance; // Nueva variable para almacenar la distancia
+
+  // Getter para routeInfos
+  List<Map<String, dynamic>?> get _routeInfos => routeInfos;
+
+  // Getter para routeRiskScores
+  List<double> get routeRiskScores => _routeRiskScores;
 
   //Clases de otros archivos, hace funcionar la aplicación *NO BORRAR*
   final RouteRepository routeRepository;
@@ -72,10 +80,18 @@ class MapController {
     CollectionReference reports = firestore.collection('reports');
     QuerySnapshot querySnapshot = await reports.get();
 
-    // Filtra los reportes de acuerdo a la ruta seleccionada antes de actualizar los marcadores y círculos
+    // Limpia los marcadores y círculos
     markers.clear();
     circles.clear();
+
+    // Actualiza los marcadores y círculos basados en los reportes
     _updateMarkersAndCircles(querySnapshot, context, userEmail!);
+
+    // Reagrega el marcador de la ubicación seleccionada si existe
+    if (selectedLocationMarker != null) {
+      markers.add(selectedLocationMarker!);
+    }
+
     updateUI?.call();
   }
 
@@ -98,6 +114,29 @@ class MapController {
     await _classifyAndDisplayRoutes(); // Clasifica y selecciona las rutas antes de cargar reportes
     await loadReports(context); // Carga los reportes una vez clasificadas las rutas
     updateUI?.call(); // Actualiza la UI después de clasificar y cargar los datos
+  }
+
+  Future<void> calculateRouteInfoAndRiskScore(LatLng destination) async {
+    if (currentPosition == null) return;
+
+    routes = await getRoutes(currentPosition!, destination);
+    routeInfos.clear();
+    _routeRiskScores.clear();
+
+    for (var route in routes) {
+      var info = await directionsService.getRouteInfo(currentPosition!, destination);
+
+      // Llama a _countReportsInRoute para contar los reportes cercanos en esta ruta
+      int reportCount = _countReportsInRoute(route);
+      info?['reportCount'] = reportCount;
+      routeInfos.add(info);
+
+      // Calcula el riesgo de la ruta
+      double riskScore = routeRiskCalculator.calculateRouteRisk(route, markers);
+      _routeRiskScores.add(riskScore);
+    }
+
+    updateUI?.call(); // Actualiza la UI después de recalcular la información
   }
 
   Future<void> _classifyAndDisplayRoutes() async {
@@ -267,11 +306,53 @@ class MapController {
     });
   }
 
-  void addMarkerForSelectedLocation(LatLng location) {
-    MapUtils.addMarkerForSelectedLocation(
-      markers: markers,
-      controller: controller!,
-      location: location,
-    );
+  void clearRouteAndMarkers() {
+    // Limpia todas las polilíneas, marcadores y círculos
+    polylines.clear();
+    markers.clear();
+    circles.clear();
+
+    // Actualiza la interfaz para reflejar los cambios
+    updateUI?.call();
   }
+
+  int _countReportsInRoute(List<LatLng> route) {
+    int reportCount = 0;
+    for (var marker in markers) {
+      // Verifica si el marcador está cerca de algún punto de la ruta seleccionada
+      if (mapUIService.isNearRoute(marker.position, route)) {
+        reportCount++;
+      }
+    }
+    print('Cantidad de reportes en la ruta: $reportCount'); // Agrega esta línea para depurar
+    return reportCount;
+  }
+
+  void addMarkerForSelectedLocation(LatLng location) {
+    selectedLocationMarker = Marker(
+      markerId: MarkerId('selectedLocation'),
+      position: location,
+      infoWindow: InfoWindow(title: 'Ubicación seleccionada'),
+    );
+
+    markers.add(selectedLocationMarker!);
+    updateUI?.call();
+  }
+
+  // Método para calcular la distancia y almacenar el resultado
+  Future<void> calculateDistanceTo(LatLng destination) async {
+    if (currentPosition != null) {
+      double calculatedDistance = calculateDistanceUseCase.execute(currentPosition!, destination);
+      distance = '${(calculatedDistance / 1000).toStringAsFixed(2)} km'; // Convertir a km y formatear
+      updateUI?.call();
+    }
+  }
+
+// Función para seleccionar la ubicación y cargar la distancia
+  Future<void> selectLocation(LatLng location) async {
+    lastDestination = location;
+    await calculateDistanceTo(location);
+  }
+
+
 }

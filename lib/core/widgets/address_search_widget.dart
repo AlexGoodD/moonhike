@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:moonhike/imports.dart';
 
 class AddressSearchWidget extends StatefulWidget {
-  final Function(LatLng) onLocationSelected;
+  final Future<void> Function(LatLng, String) onLocationSelected;
 
   AddressSearchWidget({required this.onLocationSelected});
 
@@ -32,6 +32,8 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
       _currentPosition = LatLng(position.latitude, position.longitude);
     });
   }
+
+
 
   void _getSuggestions(String input) async {
     if (input.isEmpty) return;
@@ -72,12 +74,12 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
         suggestions.add({
           'placeId': placeId,
-          'shortName': shortName,
+          'shortName': shortName, // Store the short name directly here
           'address': address,
           'distance': routeInfo?['distance'] ?? 'N/A',
           'duration': routeInfo?['duration'] ?? 'N/A',
           'description': suggestion['description'],
-          'location': suggestionLocation, // Store the location directly here
+          'location': suggestionLocation,
         });
       }
     }
@@ -195,7 +197,10 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                     setState(() {
                       _suggestions = [];
                     });
-                    widget.onLocationSelected(suggestion['location']); // Pass the stored location directly
+                    widget.onLocationSelected(
+                      suggestion['location'],
+                      suggestion['shortName'],
+                    ); // Pass the short name); // Pass the stored location directly
                   },
                 );
               },

@@ -43,7 +43,7 @@ class MapUIService {
       GeoPoint location = doc['location'];
       LatLng reportPosition = LatLng(location.latitude, location.longitude);
 
-      if (_isNearRoute(reportPosition, selectedRoute)) {
+      if (isNearRoute(reportPosition, selectedRoute)) {
         String reportType = doc['type'];
         String reportUser = doc['user'] ?? 'Usuario desconocido';
         double markerHue;
@@ -103,7 +103,7 @@ class MapUIService {
   ///
   /// Retorna `true` si el punto del reporte está cerca de algún punto de la ruta,
   /// `false` en caso contrario.
-  bool _isNearRoute(LatLng reportPosition, List<LatLng> route) {
+  bool isNearRoute(LatLng reportPosition, List<LatLng> route) {
     const double proximityThreshold = 50.0; // Distancia en metros para considerar proximidad
     for (var point in route) {
       if (calculateDistanceUseCase.execute(reportPosition, point) <= proximityThreshold) {

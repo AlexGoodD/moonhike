@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moonhike/core/constans/colors.dart';
 
 class SelectRouteWidget extends StatelessWidget {
   final VoidCallback showPreviousRoute;
@@ -14,18 +15,50 @@ class SelectRouteWidget extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        FloatingActionButton(
-          onPressed: showPreviousRoute,
-          child: Icon(Icons.arrow_back),
-          backgroundColor: Colors.grey,
-          heroTag: 'previousRoute',
+        GestureDetector(
+          onTap: showPreviousRoute,
+          child: Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: paletteColors.fourthColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: Offset(2, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.arrow_back,
+              size: 30,
+              color: paletteColors.secondColor,
+            ),
+          ),
         ),
-        SizedBox(width: 10),
-        FloatingActionButton(
-          onPressed: showNextRoute,
-          child: Icon(Icons.arrow_forward),
-          backgroundColor: Colors.grey,
-          heroTag: 'nextRoute',
+        SizedBox(width: 20),
+        GestureDetector(
+          onTap: showNextRoute,
+          child: Container(
+            padding: EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: paletteColors.fourthColor,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.2),
+                  blurRadius: 8,
+                  offset: Offset(2, 2),
+                ),
+              ],
+            ),
+            child: Icon(
+              Icons.arrow_forward,
+              size: 30,
+              color: paletteColors.secondColor,
+            ),
+          ),
         ),
       ],
     );

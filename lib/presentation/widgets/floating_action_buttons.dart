@@ -16,15 +16,6 @@ class FloatingActionButtons extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (showStartRouteButton)
-          FloatingActionButton(
-            onPressed: () async {
-              await onStartRoute();
-            },
-            child: Icon(Icons.directions_walk),
-            backgroundColor: Colors.blue,
-            heroTag: 'startRoute',
-          ),
         SizedBox(height: 10),
         FloatingActionButton(
           onPressed: () async {

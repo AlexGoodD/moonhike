@@ -1,3 +1,4 @@
+import 'package:geocoding/geocoding.dart';
 import 'package:moonhike/imports.dart';
 
 class MapScreen extends StatefulWidget {
@@ -9,54 +10,47 @@ class _MapScreenState extends State<MapScreen> {
   late RouteService routeService;
   late RouteRepository routeRepository;
   late MapController mapController;
-
+  String? locationName; // Variable para almacenar el nombre de la ubicación
   bool showStartRouteButton = false;
   bool isInfoTabOpen = false;
   LatLng? selectedLocation;
+  String? duration; // Para almacenar la duración estimada
+  String? distance; // Para almacenar la distancia estimada
+  bool showRouteDetails = false;
 
-  int _selectedIndex = 0;
+  // Variables adicionales para almacenar routeInfos y routeRiskScores
+  List<Map<String, dynamic>?> routeInfos = [];
+  List<double> routeRiskScores = [];
 
   // Controlador para DraggableScrollableSheet
   final DraggableScrollableController _draggableController = DraggableScrollableController();
 
-  final List<Widget> _pages = [
-    MapScreen(), // Página de inicio/mapa
-    ReportsScreen(), // Página de reportes
-    SettingsScreen(), // Página de configuración
-    ProfileScreen(), // Página de perfil
-  ];
-
-  void _onItemTapped(int index) {
+  Future<void> _onLocationSelected(LatLng location, String name) async {
     setState(() {
-      _selectedIndex = index;
+      selectedLocation = location;
+      locationName = name;
+      isInfoTabOpen = true;
     });
-    // Navegación a la página correspondiente
-    switch (index) {
-      case 0:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => MapScreen()),
-        );
-        break;
-      case 1:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ReportsScreen()),
-        );
-        break;
-      case 2:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => SettingsScreen()),
-        );
-        break;
-      case 3:
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => ProfileScreen()),
-        );
-        break;
-    }
+
+    // Calcula la información de las rutas y los puntajes de riesgo
+    await mapController.calculateRouteInfoAndRiskScore(location);
+
+    // Actualiza las variables en el estado usando los getters
+    setState(() {
+      routeInfos = mapController.routeInfos;
+      routeRiskScores = mapController.routeRiskScores;
+    });
+  }
+
+  Future<void> _startRoute() async {
+    await mapController.startRoutes(selectedLocation, context);
+
+    setState(() {
+      showRouteDetails = true;
+      // Asignar routeInfos y routeRiskScores después de que se calculen en mapController
+      routeInfos = mapController.routeInfos.isNotEmpty ? mapController.routeInfos : [];
+      routeRiskScores = mapController.routeRiskScores.isNotEmpty ? mapController.routeRiskScores : [];
+    });
   }
 
   @override
@@ -81,19 +75,13 @@ class _MapScreenState extends State<MapScreen> {
       });
     });
 
-    _draggableController.addListener(_handleInfoTabPosition);
+    //_draggableController.addListener(_handleInfoTabPosition);
   }
 
   void _handleInfoTabPosition() {
-    if (_draggableController.size > 0.2 && !isInfoTabOpen) {
-      setState(() {
-        isInfoTabOpen = true;
-      });
-    } else if (_draggableController.size <= 0.1 && isInfoTabOpen) {
-      setState(() {
-        isInfoTabOpen = false;
-      });
-    }
+    setState(() {
+      isInfoTabOpen = _draggableController.size > 0.1;
+    });
   }
 
   Future<void> _checkLocationPermission() async {
@@ -129,18 +117,6 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
-  /*
-  void _checkAuthentication() {
-    FirebaseAuth.instance.authStateChanges().listen((User? user) {
-      if (user == null) {
-        // Si no hay usuario autenticado, redirige a la pantalla de login
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
-        );
-      }
-    });
-  }*/
 
   @override
   Widget build(BuildContext context) {
@@ -153,23 +129,17 @@ class _MapScreenState extends State<MapScreen> {
             left: 10,
             right: 10,
             child: AddressSearchWidget(
-              onLocationSelected: (LatLng location) {
-                setState(() {
-                  selectedLocation = location;
-                  mapController.addMarkerForSelectedLocation(location);
-                  showStartRouteButton = true;
-                });
-              },
+                onLocationSelected: _onLocationSelected, // Pasa ambos valores
             ),
           ),
           Positioned(
-            bottom: isInfoTabOpen ? 250 : 120,
+            bottom: isInfoTabOpen ? 150 : 190,
             left: 330,
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {
                   await mapController.startRoutes(selectedLocation, context);
-                  setState(() {});
+                  setState(() { showRouteDetails = true; });
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text('Error al iniciar la ruta: $e')),
@@ -198,19 +168,43 @@ class _MapScreenState extends State<MapScreen> {
               showStartRouteButton: showStartRouteButton,
             ),
           ),
+          if (isInfoTabOpen)
           Positioned(
-            bottom: isInfoTabOpen ? 160 : 50,
+            bottom: 150,
             right: 130,
             child: SelectRouteWidget(
               showPreviousRoute: () => mapController.showPreviousRoute(context),
               showNextRoute: () => mapController.showNextRoute(context),
             ),
           ),
+          if (isInfoTabOpen)
+            DraggableScrollableSheet(
+              initialChildSize: 0.2,
+              minChildSize: 0.1,
+              maxChildSize: 0.2,
+              builder: (context, scrollController) {
+                return RouteInfoTab(
+                  locationName: locationName ?? 'Ubicación seleccionada',
+                  onClose: () {
+                    setState(() {
+                      isInfoTabOpen = false;
+                      locationName = null;
+                      showRouteDetails = false;
+                    });
+                  },
+                  onStartRoute: _startRoute,
+                  scrollController: scrollController, // Pasar scrollController aquí
+                  routeInfos: routeInfos,
+                  routeRiskScores: routeRiskScores,
+                  showRouteDetails: showRouteDetails,
+                );
+              },
+            ),
         ],
       ),
       bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: _selectedIndex,
-        onTap: _onItemTapped,
+        currentIndex: 0, // Índice actual para la pantalla de Configuración
+        onTap: (index) {}, // No necesitas ninguna lógica extra aquí
       ),
     );
   }
