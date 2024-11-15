@@ -69,7 +69,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 value: 'Interés peatonal',
                 groupValue: selectedReportType,
                 title: Text('Interés peatonal', style: TextStyle(color: Colors.white)),
-                secondary: Icon(Icons.directions_walk, color: const Color.fromARGB(255, 255, 80, 80)),
+                secondary: Icon(Icons.directions_walk, color: const Color.fromARGB(255, 255, 79, 79)),
                 onChanged: (value) {
                   setState(() {
                     selectedReportType = value;
