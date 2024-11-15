@@ -22,7 +22,7 @@ class FloatingActionButtons extends StatelessWidget {
             shape: BoxShape.rectangle,
             borderRadius: BorderRadius.circular(12),
             gradient: LinearGradient(
-              colors: [const Color.fromARGB(255, 86, 86, 174), ProfileColors.backgroundBottom],
+              colors: [const Color.fromARGB(255, 86, 86, 174), const Color.fromARGB(255, 53, 36, 140)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
