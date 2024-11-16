@@ -36,96 +36,126 @@ class _CustomScreenState extends State<CustomScreen> {
         body: ListView(
           padding: const EdgeInsets.all(16.0),
           children: [
-            // Título de sección
-            Text(
-              'Cambia los colores de los reportes',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-            ),
-            SizedBox(height: 10),
-
-            // Reporte de mala iluminación
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Row(
               children: [
-                Text('Reporte de mala iluminación', style: TextStyle(color: Colors.white)),
-                Row(
-                  children: [
-                    _buildColorOption(Colors.orange, () {
-                      setState(() {
-                        colorMalaIluminacion = Colors.orange;
-                      });
-                    }),
-                    _buildColorOption(Colors.brown, () {
-                      setState(() {
-                        colorMalaIluminacion = Colors.brown;
-                      });
-                    }),
-                    _buildColorOption(Colors.yellow, () {
-                      setState(() {
-                        colorMalaIluminacion = Colors.yellow;
-                      });
-                    }),
-                  ],
+                Icon(Icons.color_lens, color: Colors.white),
+                SizedBox(width: 8),
+                Text(
+                  'Cambia los colores de los reportes',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
               ],
+            ),
+            SizedBox(height: 20),
+
+            // Reporte de mala iluminación
+            _buildColorCard(
+              'Reporte de mala iluminación',
+              colorMalaIluminacion,
+              [
+                _buildColorOption(Colors.orange, () {
+                  setState(() {
+                    colorMalaIluminacion = Colors.orange;
+                  });
+                }),
+                _buildColorOption(Colors.brown, () {
+                  setState(() {
+                    colorMalaIluminacion = Colors.brown;
+                  });
+                }),
+                _buildColorOption(Colors.yellow, () {
+                  setState(() {
+                    colorMalaIluminacion = Colors.yellow;
+                  });
+                }),
+              ],
+              Icons.location_on, // Ícono para el tipo de reporte
+              const Color.fromARGB(255, 171, 129, 45), // Color del ícono
             ),
             SizedBox(height: 20),
 
             // Reporte de inseguridad
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Reporte de inseguridad', style: TextStyle(color: Colors.white)),
-                Row(
-                  children: [
-                    _buildColorOption(Colors.purple, () {
-                      setState(() {
-                        colorInseguridad = Colors.purple;
-                      });
-                    }),
-                    _buildColorOption(Colors.orange, () {
-                      setState(() {
-                        colorInseguridad = Colors.orange;
-                      });
-                    }),
-                    _buildColorOption(Colors.blue, () {
-                      setState(() {
-                        colorInseguridad = Colors.blue;
-                      });
-                    }),
-                  ],
-                ),
+            _buildColorCard(
+              'Reporte de inseguridad',
+              colorInseguridad,
+              [
+                _buildColorOption(Colors.purple, () {
+                  setState(() {
+                    colorInseguridad = Colors.purple;
+                  });
+                }),
+                _buildColorOption(Colors.orange, () {
+                  setState(() {
+                    colorInseguridad = Colors.orange;
+                  });
+                }),
+                _buildColorOption(Colors.blue, () {
+                  setState(() {
+                    colorInseguridad = Colors.blue;
+                  });
+                }),
               ],
+              Icons.security, // Ícono para el tipo de reporte
+              Colors.purple, // Color del ícono
             ),
             SizedBox(height: 20),
 
             // Reporte de interés
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Reporte de interés', style: TextStyle(color: Colors.white)),
-                Row(
-                  children: [
-                    _buildColorOption(Colors.red, () {
-                      setState(() {
-                        colorInteres = Colors.red;
-                      });
-                    }),
-                    _buildColorOption(Colors.green, () {
-                      setState(() {
-                        colorInteres = Colors.green;
-                      });
-                    }),
-                    _buildColorOption(Colors.lightBlue, () {
-                      setState(() {
-                        colorInteres = Colors.lightBlue;
-                      });
-                    }),
-                  ],
-                ),
+            _buildColorCard(
+              'Reporte de interés',
+              colorInteres,
+              [
+                _buildColorOption(Colors.red, () {
+                  setState(() {
+                    colorInteres = Colors.red;
+                  });
+                }),
+                _buildColorOption(Colors.green, () {
+                  setState(() {
+                    colorInteres = Colors.green;
+                  });
+                }),
+                _buildColorOption(Colors.lightBlue, () {
+                  setState(() {
+                    colorInteres = Colors.lightBlue;
+                  });
+                }),
               ],
+              Icons.directions_walk, // Ícono para el tipo de reporte
+              Colors.red, // Color del ícono
             ),
-            SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // Widget para crear un card de color personalizado
+  Widget _buildColorCard(String title, Color selectedColor, List<Widget> colorOptions, IconData icon, Color iconColor) {
+    return Card(
+      color: ReportsScreenColors.card,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  SizedBox(height: 10),
+                  Row(children: colorOptions),
+                ],
+              ),
+            ),
+            Icon(icon, color: iconColor, size: 40),
           ],
         ),
       ),

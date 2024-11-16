@@ -107,30 +107,6 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
-            SizedBox(height: 20),
-            ListTile(
-              leading: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.all(8.0),
-                child: Icon(Boxicons.bxs_brush, color: AppColors.buttonIcon),
-              ),
-              title: Text('Personalización', style: TextStyle(color: Colors.white)),
-              subtitle: Text('Cambia algunos aspectos visuales', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => CustomScreen()),
-                );
-              },
-              tileColor: ReportsScreenColors.card,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              
-            ),
           ],
         ),
         bottomNavigationBar: CustomBottomNavigationBar(
