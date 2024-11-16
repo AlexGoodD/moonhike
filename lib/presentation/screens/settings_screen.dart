@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:moonhike/imports.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -101,51 +100,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
               title: Text('Permisos', style: TextStyle(color: Colors.white)),
               subtitle: Text('Controla qué permisos obtiene MoonHike', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
               onTap: () {
-                // Lógica para controlar permisos de la app (puedes agregar un diálogo o navegación a otra página)
+                AppSettings.openAppSettings(); // Abre la configuración de la app
               },
-              tileColor: ReportsScreenColors.card,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            SizedBox(height: 10),
-            ListTile(
-              leading: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                padding: EdgeInsets.all(8.0),
-                child: Icon(Boxicons.bxs_bell, color: AppColors.buttonIcon),
-              ),
-              title: Text('Notificaciones', style: TextStyle(color: Colors.white)),
-              subtitle: Text('Permite recibir o denegar notificaciones', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
-              trailing: Switch(
-                value: notificationsEnabled,
-                onChanged: (bool value) {
-                  setState(() {
-                    notificationsEnabled = value;
-                    // Lógica para activar/desactivar notificaciones
-                  });
-                },
-                activeColor: const Color.fromARGB(255, 227, 215, 255),
-              ),
               tileColor: ReportsScreenColors.card,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
             SizedBox(height: 20),
-            // Sección Personalización (pendiente)
-            Text(
-              'Personalización',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            SizedBox(height: 10),
             ListTile(
               leading: Container(
                 decoration: BoxDecoration(
@@ -153,17 +115,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 padding: EdgeInsets.all(8.0),
-                child: Icon(Icons.brush, color: AppColors.buttonIcon),
+                child: Icon(Boxicons.bxs_brush, color: AppColors.buttonIcon),
               ),
               title: Text('Personalización', style: TextStyle(color: Colors.white)),
               subtitle: Text('Cambia algunos aspectos visuales', style: TextStyle(color: const Color.fromARGB(115, 255, 255, 255))),
               onTap: () {
-                // Lógica pendiente
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => CustomScreen()),
+                );
               },
               tileColor: ReportsScreenColors.card,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
+              
             ),
           ],
         ),
