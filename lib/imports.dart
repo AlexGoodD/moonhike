@@ -7,6 +7,7 @@ export 'package:geolocator/geolocator.dart';
 export 'package:flutter_boxicons/flutter_boxicons.dart';
 export 'package:share_plus/share_plus.dart';
 export 'package:flutter/services.dart';
+export 'package:app_settings/app_settings.dart';
 //import 'package:provider/provider.dart';
 
 //Firebase
@@ -56,6 +57,7 @@ export 'package:moonhike/presentation/utils/map_utils.dart';
 export 'package:moonhike/presentation/screens/reports_screen.dart';
 export 'package:moonhike/presentation/screens/settings_screen.dart';
 export 'package:moonhike/presentation/screens/initial_screen.dart';
+export 'package:moonhike/presentation/screens/custom_screen.dart';
 
 
 
