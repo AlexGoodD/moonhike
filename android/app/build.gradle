@@ -37,6 +37,7 @@ android {
 dependencies {
     implementation platform('com.google.firebase:firebase-bom:33.3.0') // Asegúrate de usar la última versión del Firebase BoM
     implementation 'com.google.firebase:firebase-analytics'
+    implementation 'com.google.firebase:firebase-messaging'
     // Agrega aquí otras dependencias de Firebase si las necesitas
 }
 

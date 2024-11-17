@@ -182,6 +182,15 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
+            bottom: 280, // Ajusta según tu diseño
+            left: 330, // Ajusta según tu diseño
+            child: FindLocationButton(
+              onPressed: () async {
+                await _moveToUserLocation(); // Usa la función que ya definiste
+              },
+            ),
+          ),
+          Positioned(
             bottom: isInfoTabOpen ? 150 : 190,
             left: 330,
             child: FloatingActionButtons(

@@ -8,9 +8,9 @@ class ReportsScreen extends StatefulWidget {
 
 class _ReportsScreenState extends State<ReportsScreen> {
   final User? user = FirebaseAuth.instance.currentUser; // Usuario autenticado
-  int _selectedIndex = 1; // Índice de la pantalla actual (Reports)
   List<QueryDocumentSnapshot>? userReports; // Lista de reportes del usuario
   bool isLoading = true; // Bandera para indicar si los datos se están cargando
+  Timer? _snackBarTimer; // Timer para controlar los SnackBar
 
   @override
   void initState() {
@@ -42,15 +42,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Future<void> _deleteReport(String reportId) async {
     try {
       await FirebaseFirestore.instance.collection('reports').doc(reportId).delete();
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Reporte eliminado exitosamente')),
-      );
-      _fetchUserReports(); // Refresca la lista de reportes después de la eliminación
+
+      // Cancelamos cualquier SnackBar pendiente
+      _snackBarTimer?.cancel();
+
+      // Programamos un nuevo SnackBar después de 500ms
+      _snackBarTimer = Timer(Duration(milliseconds: 500), () {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Reportes eliminados exitosamente')),
+        );
+      });
+
+      _fetchUserReports(); // Refresca la lista de reportes
     } catch (e) {
+      // Si ocurre un error, también cancelamos cualquier SnackBar pendiente
+      _snackBarTimer?.cancel();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Error al eliminar el reporte: $e')),
       );
     }
+  }
+
+  @override
+  void dispose() {
+    _snackBarTimer?.cancel(); // Cancelamos el Timer cuando se destruye el widget
+    super.dispose();
   }
 
   @override

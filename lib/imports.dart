@@ -62,6 +62,7 @@ export 'package:moonhike/presentation/utils/map_utils.dart';
 export 'package:moonhike/presentation/screens/reports_screen.dart';
 export 'package:moonhike/presentation/screens/settings_screen.dart';
 export 'package:moonhike/presentation/screens/initial_screen.dart';
+export 'package:moonhike/presentation/widgets/find_location.dart';
 
 
 
