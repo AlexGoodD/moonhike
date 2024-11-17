@@ -39,58 +39,65 @@ class MapUIService {
 
     // Agregar o actualizar solo los reportes actuales
     for (var doc in snapshot.docs) {
-      final String markerId = 'report_${doc.id}';
-      GeoPoint location = doc['location'];
+      final data = doc.data() as Map<String, dynamic>?; // Obtén los datos del documento de forma segura
+      if (data == null) continue; // Si el documento no tiene datos, omitir
+
+      GeoPoint location = data['location'];
       LatLng reportPosition = LatLng(location.latitude, location.longitude);
 
-      if (isNearRoute(reportPosition, selectedRoute)) {
-        String reportType = doc['type'];
-        String reportUser = doc['user'] ?? 'Usuario desconocido';
-        double markerHue;
-        Color circleColor;
-
-        // Define el color del marcador y círculo según el tipo de reporte
-        if (reportType == 'Mala iluminación') {
-          markerHue = BitmapDescriptor.hueYellow;
-          circleColor = const Color.fromARGB(255, 206, 198, 124).withOpacity(0.3);
-        } else if (reportType == 'Inseguridad') {
-          markerHue = BitmapDescriptor.hueViolet;
-          circleColor = const Color.fromARGB(255, 101, 39, 176).withOpacity(0.3);
-        } else {
-          markerHue = BitmapDescriptor.hueRed;
-          circleColor = Colors.red.withOpacity(0.3);
-        }
-
-        // Añade el marcador
-        markers.add(
-          Marker(
-            markerId: MarkerId(markerId),
-            position: reportPosition,
-            icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
-            infoWindow: InfoWindow(
-              title: reportType,
-              snippet: 'Creado por: $reportUser',
-              onTap: () {
-                if (reportUser == userEmail) {
-                  showDeleteDialog(context, doc.id);
-                }
-              },
-            ),
-          ),
-        );
-
-        // Añade el círculo de área de riesgo
-        circles.add(
-          Circle(
-            circleId: CircleId('danger_area_${doc.id}'),
-            center: reportPosition,
-            radius: 20,
-            fillColor: circleColor,
-            strokeColor: circleColor.withOpacity(0.6),
-            strokeWidth: 2,
-          ),
-        );
+      // Verificar si el reporte está cerca de la ruta seleccionada
+      if (!isNearRoute(reportPosition, selectedRoute)) {
+        continue; // Si no está cerca, omitir
       }
+
+      final String markerId = 'report_${doc.id}';
+      String reportType = data['type'] ?? 'Reporte desconocido';
+      String reportUser = data.containsKey('user') ? data['user'] : 'Noticia'; // Asigna "Noticia" si 'user' no existe
+
+      double markerHue;
+      Color circleColor;
+
+      // Define el color del marcador y círculo según el tipo de reporte
+      if (reportType == 'Mala iluminación') {
+        markerHue = BitmapDescriptor.hueYellow;
+        circleColor = const Color.fromARGB(255, 206, 198, 124).withOpacity(0.3);
+      } else if (reportType == 'Inseguridad') {
+        markerHue = BitmapDescriptor.hueViolet;
+        circleColor = const Color.fromARGB(255, 101, 39, 176).withOpacity(0.3);
+      } else {
+        markerHue = BitmapDescriptor.hueRed;
+        circleColor = Colors.red.withOpacity(0.3);
+      }
+
+      // Añade el marcador
+      markers.add(
+        Marker(
+          markerId: MarkerId(markerId),
+          position: reportPosition,
+          icon: BitmapDescriptor.defaultMarkerWithHue(markerHue),
+          infoWindow: InfoWindow(
+            title: reportType,
+            snippet: 'Creado por: $reportUser',
+            onTap: () {
+              if (reportUser == userEmail) {
+                showDeleteDialog(context, doc.id);
+              }
+            },
+          ),
+        ),
+      );
+
+      // Añade el círculo de área de riesgo
+      circles.add(
+        Circle(
+          circleId: CircleId('danger_area_${doc.id}'),
+          center: reportPosition,
+          radius: 20,
+          fillColor: circleColor,
+          strokeColor: circleColor.withOpacity(0.6),
+          strokeWidth: 2,
+        ),
+      );
     }
     updateUI();
   }

@@ -7,6 +7,8 @@ export 'package:geolocator/geolocator.dart';
 export 'package:flutter_boxicons/flutter_boxicons.dart';
 export 'package:share_plus/share_plus.dart';
 export 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:google_geocoding/google_geocoding.dart'; // Importa el paquete de geocodificación
 //import 'package:provider/provider.dart';
 
 //Firebase
@@ -22,20 +24,25 @@ export 'package:moonhike/core/utils/location_utils.dart';
 export 'package:moonhike/core/widgets/address_search_widget.dart';
 export 'package:moonhike/core/widgets/bottom_navigation_bar.dart';
 export 'core/constans/api_keys.dart';
+export 'core/automation/automated_report_service.dart';
 
 //Data
-export 'package:moonhike/data/models/route_service.dart';
-export 'package:moonhike/data/models/user_service.dart';
-export 'package:moonhike/data/models/reports_service.dart';
-export 'package:moonhike/data/models/directions_service.dart';
+export 'package:moonhike/data/services/route_service.dart';
+export 'package:moonhike/data/services/user_service.dart';
+export 'package:moonhike/data/services/reports_service.dart';
+export 'package:moonhike/data/services/directions_service.dart';
 export 'package:moonhike/data/repositories/route_repository.dart';
 export 'package:moonhike/data/models/reports.dart';
+export 'package:moonhike/data/models/news_article.dart';
+export 'package:moonhike/data/services/news_service.dart';
 
 //Domain
 export 'package:moonhike/domain/entities/route_entity.dart';
 export 'package:moonhike/domain/use_cases/calculate_distance_use_case.dart';
 export 'package:moonhike/domain/use_cases/get_routes_use_case.dart';
 export 'package:moonhike/domain/use_cases/route_risk_calculator.dart';
+export 'package:moonhike/domain/use_cases/delete_expired_reports.dart';
+export 'package:moonhike/domain/use_cases/generate_automated_report.dart';
 
 //Presentation
 export 'package:moonhike/presentation/screens/map_screen.dart';

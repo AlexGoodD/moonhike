@@ -278,6 +278,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.1.0"
+  flutter_langdetect:
+    dependency: "direct main"
+    description:
+      name: flutter_langdetect
+      sha256: "93bd865c7d5723eac614744abb32234ee4f593505a293bc17ef097bd55fbdf38"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.0.2"
   flutter_launcher_icons:
     dependency: "direct dev"
     description:
@@ -392,6 +400,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.2.3"
+  google_geocoding:
+    dependency: "direct main"
+    description:
+      name: google_geocoding
+      sha256: b138a42d846d9d4dd4e51908959118fb06c5f9bb2bf5575e5c86362c2c418e90
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.2.0"
   google_maps:
     dependency: transitive
     description:
@@ -457,7 +473,7 @@ packages:
     source: hosted
     version: "0.15.5"
   http:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: http
       sha256: "5895291c13fa8a3bd82e76d5627f69e0d85ca6a30dcac95c4ea19a5d555879c2"
@@ -584,6 +600,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.1"
+  logger:
+    dependency: transitive
+    description:
+      name: logger
+      sha256: "7ad7215c15420a102ec687bb320a7312afd449bac63bfb1c60d9787c27b9767f"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.4.0"
   matcher:
     dependency: transitive
     description:

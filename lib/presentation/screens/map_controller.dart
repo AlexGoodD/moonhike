@@ -298,6 +298,7 @@ class MapController {
   void _listenToReportChanges(BuildContext context) {
     reportsSubscription?.cancel();
     reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) async {
+      print("Se detectaron ${snapshot.docs.length} reportes en Firestore."); // LOG
       _updateMarkersAndCircles(snapshot, context, userEmail!);
       _classifyAndDisplayRoutes();
       //await updateRouteColors(); // Asegura que los colores se actualicen en tiempo real
