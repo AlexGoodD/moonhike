@@ -21,7 +21,7 @@ class MapWidget extends StatelessWidget {
       polylines: mapController.polylines,
       myLocationEnabled: true,
         zoomControlsEnabled: true, // Oculta los controles de zoom
-        myLocationButtonEnabled: false, // Oculta el botón de ubicación
+        myLocationButtonEnabled: true, // Oculta el botón de ubicación
         compassEnabled: false, // Oculta la brújula
         mapToolbarEnabled: false
     );

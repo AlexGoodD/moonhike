@@ -5,6 +5,7 @@ class GenerateAutomatedReport {
 
   GenerateAutomatedReport({required this.newsService});
 
+  /*
   /// Genera reportes automatizados basados en noticias.
   Future<void> execute({String? query}) async {
     try {
@@ -27,4 +28,6 @@ class GenerateAutomatedReport {
       print('Error al generar reportes automatizados: $e');
     }
   }
+
+  */
 }

@@ -31,6 +31,8 @@ class NewsService {
     initLangDetect();
   }
 
+  /*
+
   Future<void> fetchAndCreateReports({required String query}) async {
     // Palabras clave para filtrar las noticias
     final List<String> keywords = [
@@ -124,6 +126,7 @@ class NewsService {
     await Future.delayed(Duration(minutes: 5));
   }
 
+   */
   String generateArticleId(Map<String, dynamic> article) {
     final title = article['title'] ?? '';
     final description = article['description'] ?? '';
@@ -161,7 +164,7 @@ class NewsService {
     }
   }
 
-  /// Inicia el proceso de peticiones cada 5 minutos
+  /*/ Inicia el proceso de peticiones cada 5 minutos
   void startFetchingReportsPeriodically(String query) {
     _timer = Timer.periodic(Duration(minutes: 5), (_) async {
       print("Ejecutando petición...");
@@ -171,7 +174,7 @@ class NewsService {
     // Realiza la primera petición inmediatamente
     print("Ejecutando primera petición inmediatamente...");
     fetchAndCreateReports(query: query);
-  }
+  }*/
 
   /// Detiene las peticiones periódicas
   void stopFetchingReportsPeriodically() {
