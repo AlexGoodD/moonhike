@@ -191,8 +191,8 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
-            bottom: isInfoTabOpen ? 150 : 190,
-            left: 330,
+            bottom: isInfoTabOpen ? 150 : 25,
+            left: 60,
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {

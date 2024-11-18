@@ -480,7 +480,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Spacer(), // Empuja el número e ícono a la derecha
                   Icon(Boxicons.bxs_moon, size: 24, color: paletteColors.sixthColor), // Ícono de la card
                   Text(
-                    daysCount, // Muestra el número de días
+                    " " + daysCount, // Muestra el número de días
                     style: TextStyle(
                       fontSize: 24,
                       fontWeight: FontWeight.w900,
