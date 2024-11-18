@@ -26,6 +26,7 @@ class ReportsScreenColors{
   static const iconColor = Color.fromRGBO(153, 151, 188, 1.0);
   static const primaryFontColor = Colors.white;
   static const secondaryFontColor = Colors.white;
+  static const card = Color.fromRGBO(55, 55, 95, 1);
 }
 
 class SettingsColor{

@@ -7,8 +7,9 @@ export 'package:geolocator/geolocator.dart';
 export 'package:flutter_boxicons/flutter_boxicons.dart';
 export 'package:share_plus/share_plus.dart';
 export 'package:flutter/services.dart';
+export 'package:app_settings/app_settings.dart';
 //import 'package:http/http.dart' as http;
-import 'package:google_geocoding/google_geocoding.dart'; // Importa el paquete de geocodificación
+//export 'package:google_geocoding/google_geocoding.dart'; // Importa el paquete de geocodificación
 //import 'package:provider/provider.dart';
 
 //Firebase
@@ -64,6 +65,7 @@ export 'package:moonhike/presentation/screens/settings_screen.dart';
 export 'package:moonhike/presentation/screens/initial_screen.dart';
 export 'package:moonhike/presentation/widgets/find_location.dart';
 export 'package:moonhike/presentation/widgets/NavigationScreen.dart';
+export 'package:moonhike/presentation/screens/custom_screen.dart';
 
 
 
