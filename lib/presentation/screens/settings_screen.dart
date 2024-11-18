@@ -109,6 +109,10 @@ class _SettingsScreenState extends State<SettingsScreen> {
             ),
           ],
         ),
+        bottomNavigationBar: CustomBottomNavigationBar(
+          currentIndex: 2, // Índice actual para la pantalla de Configuración
+          onTap: (index) {}, // No necesitas ninguna lógica extra aquí
+        ),
       ),
     );
   }

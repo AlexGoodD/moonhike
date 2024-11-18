@@ -366,6 +366,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                   ),
                 ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 3, // Índice actual para la pantalla de Configuración
+        onTap: (index) {}, // No necesitas ninguna lógica extra aquí
+      ),
     );
   }
 

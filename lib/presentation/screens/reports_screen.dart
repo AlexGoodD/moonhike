@@ -209,6 +209,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
               );
             },
           ),
+          bottomNavigationBar: CustomBottomNavigationBar(
+            currentIndex: 1, // Índice actual para la pantalla de Configuración
+            onTap: (index) {}, // No necesitas ninguna lógica extra aquí
+          ),
         )
     );
   }

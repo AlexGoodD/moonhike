@@ -265,6 +265,10 @@ class _MapScreenState extends State<MapScreen> {
             ),
         ],
       ),
+      bottomNavigationBar: CustomBottomNavigationBar(
+        currentIndex: 0, // Índice actual para la pantalla de Configuración
+        onTap: (index) {}, // No necesitas ninguna lógica extra aquí
+      ),
     );
   }
 }
