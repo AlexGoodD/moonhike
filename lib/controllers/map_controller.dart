@@ -137,9 +137,10 @@ class MapController {
       _routeRiskScores.add(riskScore);
     }
 
-    updateUI?.call(); // Actualiza la UI después de recalcular la información
+    updateUI?.call();
   }
 
+  //Migrar _classifyAndDisplayRoutes
   Future<void> _classifyAndDisplayRoutes() async {
     polylines.clear();
     List<double> riskScores = [];
@@ -242,9 +243,8 @@ class MapController {
       userEmail: userEmail!,
       showDeleteDialog: showDeleteConfirmationDialog, // Pasamos la función de eliminación
     );
-    // Forzar la actualización de colores inmediatamente después de recibir cambios
-    updateRouteColors(); // Aplica el cambio de colores en tiempo real
-    updateUI?.call(); // Fuerza la actualización de la UI
+    updateRouteColors();
+    updateUI?.call();
   }
 
   // Método de confirmación de eliminación

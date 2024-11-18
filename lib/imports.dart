@@ -46,7 +46,7 @@ export 'package:moonhike/domain/use_cases/generate_automated_report.dart';
 //Presentation
 export 'package:moonhike/presentation/screens/map_screen.dart';
 export 'package:moonhike/presentation/screens/login_screen.dart';
-export 'package:moonhike/presentation/screens/map_controller.dart';
+export 'package:moonhike/controllers/map_controller.dart';
 export 'package:moonhike/presentation/screens/profile_screens/profile_screen.dart';
 export 'package:moonhike/presentation/screens/profile_screens/account_config_screen.dart';
 export 'package:moonhike/presentation/screens/profile_screens/invite_friend_screen.dart';
@@ -63,6 +63,7 @@ export 'package:moonhike/presentation/screens/reports_screen.dart';
 export 'package:moonhike/presentation/screens/settings_screen.dart';
 export 'package:moonhike/presentation/screens/initial_screen.dart';
 export 'package:moonhike/presentation/widgets/find_location.dart';
+export 'package:moonhike/presentation/widgets/NavigationScreen.dart';
 
 
 

@@ -6,16 +6,16 @@ class MapUIService {
 
   MapUIService({required this.calculateDistanceUseCase});
 
-  /// Actualiza los marcadores y círculos en el mapa basándose en los reportes cercanos a la ruta seleccionada.
-  ///
-  /// Parámetros:
-  /// - [snapshot]: Los datos de reportes obtenidos de Firestore.
-  /// - [markers]: Un Set donde se almacenan los marcadores del mapa.
-  /// - [circles]: Un Set donde se almacenan los círculos de áreas peligrosas en el mapa.
-  /// - [routes]: Lista de listas de puntos [LatLng] que representan rutas.
-  /// - [selectedRouteIndex]: El índice de la ruta actualmente seleccionada.
-  /// - [updateUI]: Callback para actualizar la interfaz de usuario.
-  /// Actualiza los marcadores y círculos en el mapa basándose en los reportes cercanos a la ruta seleccionada.
+  /* Actualiza los marcadores y círculos en el mapa basándose en los reportes cercanos a la ruta seleccionada.
+  Parámetros:
+  [snapshot]: Los datos de reportes obtenidos de Firestore.
+  [markers]: Un Set donde se almacenan los marcadores del mapa.
+  [circles]: Un Set donde se almacenan los círculos de áreas peligrosas en el mapa.
+  [routes]: Lista de listas de puntos [LatLng] que representan rutas.
+  [selectedRouteIndex]: El índice de la ruta actualmente seleccionada.
+  [updateUI]: Callback para actualizar la interfaz de usuario.
+  Actualiza los marcadores y círculos en el mapa basándose en los reportes cercanos a la ruta seleccionada. */
+
   void updateMarkersAndCircles({
     required QuerySnapshot snapshot,
     required Set<Marker> markers,
@@ -102,14 +102,10 @@ class MapUIService {
     updateUI();
   }
 
-  /// Verifica si un punto de reporte está cerca de la ruta seleccionada.
-  ///
-  /// Parámetros:
-  /// - [reportPosition]: La posición del reporte a verificar.
-  /// - [route]: La lista de puntos [LatLng] de la ruta seleccionada.
-  ///
-  /// Retorna `true` si el punto del reporte está cerca de algún punto de la ruta,
-  /// `false` en caso contrario.
+  /* Verifica si un punto de reporte está cerca de la ruta seleccionada.
+  Parámetros: [reportPosition]: Reporte, [route]: Ruta, Retorna `true`
+  si el punto del reporte está en la ruta y false en  caso contrario*/
+
   bool isNearRoute(LatLng reportPosition, List<LatLng> route) {
     const double proximityThreshold = 50.0; // Distancia en metros para considerar proximidad
     for (var point in route) {
@@ -119,7 +115,5 @@ class MapUIService {
     }
     return false;
   }
-
-
 }
 

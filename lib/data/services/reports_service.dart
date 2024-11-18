@@ -2,9 +2,25 @@ import 'package:moonhike/imports.dart';
 
 class ReportsService {
   final FirebaseFirestore firestore = FirebaseFirestore.instance;
-
+  static const cooldownDuration = Duration(minutes: 5);
+  final Map<String, DateTime> cooldownTracker = {};
 
   Future<void> createReport(String userEmail, LatLng position, String reportType, String note) async {
+    // Redondear las coordenadas para simplificar la clave del mapa
+    String locationKey = '${position.latitude.toStringAsFixed(3)},${position.longitude.toStringAsFixed(3)}';
+
+    DateTime now = DateTime.now();
+
+    // Verificar cooldown
+    if (cooldownTracker.containsKey(locationKey)) {
+      DateTime lastReportTime = cooldownTracker[locationKey]!;
+      if (now.difference(lastReportTime) < cooldownDuration) {
+        int remainingTime = cooldownDuration.inMinutes - now.difference(lastReportTime).inMinutes;
+        throw Exception('Espera $remainingTime minutos antes de crear otro reporte en esta ubicación.');
+      }
+    }
+
+    // Crear el reporte
     await firestore.collection('reports').add({
       'user': userEmail,
       'location': GeoPoint(position.latitude, position.longitude),
@@ -12,6 +28,9 @@ class ReportsService {
       'type': reportType,
       'note': note,
     });
+
+    // Actualizar el cooldown
+    cooldownTracker[locationKey] = now;
   }
 
   /// Nuevo método para crear reportes desde noticias y definir su eliminación en 24 horas.

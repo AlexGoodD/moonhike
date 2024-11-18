@@ -1,4 +1,3 @@
-import 'package:geocoding/geocoding.dart';
 import 'package:moonhike/imports.dart';
 
 class MapScreen extends StatefulWidget {
@@ -69,7 +68,9 @@ class _MapScreenState extends State<MapScreen> {
       geocodingApiKey: ApiKeys.googleMapsApiKey,
     );*/
     mapController.setUpdateUICallback(() {
-      setState(() {});
+      if (mounted) setState(() {});
+
+
     });
 
     // Iniciar peticiones periódicas de noticias
@@ -166,7 +167,6 @@ class _MapScreenState extends State<MapScreen> {
     super.dispose();
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -215,7 +215,12 @@ class _MapScreenState extends State<MapScreen> {
                           await mapController.createReport(reportType, note, context);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error al crear reporte: $e')),
+                            SnackBar(
+                                content: Text('Error al crear reporte: $e'),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: Colors.redAccent,
+
+                            ),
                           );
                         }
                       },
@@ -259,10 +264,6 @@ class _MapScreenState extends State<MapScreen> {
               },
             ),
         ],
-      ),
-      bottomNavigationBar: CustomBottomNavigationBar(
-        currentIndex: 0, // Índice actual para la pantalla de Configuración
-        onTap: (index) {}, // No necesitas ninguna lógica extra aquí
       ),
     );
   }
