@@ -1,4 +1,3 @@
-import 'package:geocoding/geocoding.dart';
 import 'package:moonhike/imports.dart';
 
 class MapScreen extends StatefulWidget {
@@ -10,8 +9,10 @@ class _MapScreenState extends State<MapScreen> {
   late RouteService routeService;
   late RouteRepository routeRepository;
   late MapController mapController;
+  //late NewsService newsService;
   String? locationName; // Variable para almacenar el nombre de la ubicación
   bool showStartRouteButton = false;
+  bool showSelectRouteButtons = false;
   bool isInfoTabOpen = false;
   LatLng? selectedLocation;
   String? duration; // Para almacenar la duración estimada
@@ -48,6 +49,7 @@ class _MapScreenState extends State<MapScreen> {
     setState(() {
       showRouteDetails = true;
       // Asignar routeInfos y routeRiskScores después de que se calculen en mapController
+      showSelectRouteButtons = true; // Habilitar los botones de selección de rutas
       routeInfos = mapController.routeInfos.isNotEmpty ? mapController.routeInfos : [];
       routeRiskScores = mapController.routeRiskScores.isNotEmpty ? mapController.routeRiskScores : [];
     });
@@ -60,10 +62,23 @@ class _MapScreenState extends State<MapScreen> {
     routeService = RouteService();
     routeRepository = RouteRepository(routeService);
     mapController = MapController(routeRepository: routeRepository);
-
+    /*newsService = NewsService(
+      reportService: ReportsService(),
+      mediaStackApiKey: ApiKeys.mediaStackApiKey,
+      geocodingApiKey: ApiKeys.googleMapsApiKey,
+    );*/
     mapController.setUpdateUICallback(() {
-      setState(() {});
+      if (mounted) setState(() {});
+
+
     });
+
+    // Iniciar peticiones periódicas de noticias
+    const query = 'asalto OR robo OR homicidio OR crimen OR balacera';
+    //newsService.startFetchingReportsPeriodically(query); *QUITAR COMENTARIO AL SUBIR*
+
+    // Eliminar reportes expirados
+    //_deleteExpiredReports(); *QUITAR COMENTARIO AL SUBIR*
 
     // Pasa `context` aquí al llamar a `init`
     mapController.init(context);
@@ -74,8 +89,42 @@ class _MapScreenState extends State<MapScreen> {
         mapController.controller?.animateCamera(CameraUpdate.newLatLng(position));
       });
     });
+  }
 
-    //_draggableController.addListener(_handleInfoTabPosition);
+  Future<void> testAutomatedNewsReport() async {
+    final ReportsService reportService = ReportsService();
+
+    try {
+      // Simulación de datos de noticia
+      String simulatedTitle = 'Asalto a mano armada en Monterrey';
+      DateTime simulatedPublishedAt = DateTime.now();
+
+      final GeoPoint? location = GeoPoint(25.7406533, -100.2932617);
+
+      if (location != null) {
+        // Crear un reporte usando la ubicación extraída
+        await reportService.createReportFromNews(
+          type: 'Inseguridad',
+          note: simulatedTitle,
+          location: location,
+          expiration: simulatedPublishedAt.add(Duration(days: 1)), // Expira en 1 día
+        );
+
+        print('Reporte automatizado simulado creado exitosamente.');
+      } else {
+        print('No se pudo determinar la ubicación de la noticia simulada.');
+      }
+    } catch (e) {
+      print('Error al probar la generación de reportes automatizados: $e');
+    }
+  }
+
+  Future<void> _deleteExpiredReports() async {
+    final reportsService = ReportsService();
+    final deleteExpiredReports = DeleteExpiredReports(reportsService: reportsService);
+
+    // Ejecuta la eliminación de reportes expirados
+    await deleteExpiredReports.execute();
   }
 
   void _handleInfoTabPosition() {
@@ -114,9 +163,9 @@ class _MapScreenState extends State<MapScreen> {
   void dispose() {
     mapController.dispose();
     _draggableController.removeListener(_handleInfoTabPosition);
+    //newsService.stopFetchingReportsPeriodically();
     super.dispose();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -133,8 +182,17 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
+            bottom: 280, // Ajusta según tu diseño
+            left: 330, // Ajusta según tu diseño
+            child: FindLocationButton(
+              onPressed: () async {
+                await _moveToUserLocation(); // Usa la función que ya definiste
+              },
+            ),
+          ),
+          Positioned(
             bottom: isInfoTabOpen ? 150 : 25,
-            right: 60,
+            left: 60,
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {
@@ -157,7 +215,12 @@ class _MapScreenState extends State<MapScreen> {
                           await mapController.createReport(reportType, note, context);
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error al crear reporte: $e')),
+                            SnackBar(
+                                content: Text('Error al crear reporte: $e'),
+                              behavior: SnackBarBehavior.floating,
+                              backgroundColor: Colors.redAccent,
+
+                            ),
                           );
                         }
                       },
@@ -169,7 +232,8 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           if (isInfoTabOpen)
-          Positioned(
+            if (showSelectRouteButtons)
+              Positioned(
             bottom: 150,
             right: 130,
             child: SelectRouteWidget(
@@ -180,7 +244,7 @@ class _MapScreenState extends State<MapScreen> {
           if (isInfoTabOpen)
             DraggableScrollableSheet(
               initialChildSize: 0.2,
-              minChildSize: 0.1,
+              minChildSize: 0.05,
               maxChildSize: 0.2,
               builder: (context, scrollController) {
                 return RouteInfoTab(
@@ -195,7 +259,6 @@ class _MapScreenState extends State<MapScreen> {
                   onStartRoute: _startRoute,
                   scrollController: scrollController, // Pasar scrollController aquí
                   routeInfos: routeInfos,
-                  routeRiskScores: routeRiskScores,
                   showRouteDetails: showRouteDetails,
                 );
               },

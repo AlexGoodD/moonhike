@@ -15,8 +15,11 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   TextEditingController _controller = TextEditingController();
   List<Map<String, dynamic>> _suggestions = [];
   bool _isLoading = false;
+  bool _isSelecting = false; // Indica si se está seleccionando una sugerencia
+  bool _isFetching = false; // Indica si hay una solicitud en curso
   LatLng? _currentPosition;
   final DirectionsService _directionsService = DirectionsService();
+  http.Client _httpClient = http.Client();
 
   @override
   void initState() {
@@ -33,10 +36,8 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     });
   }
 
-
-
   void _getSuggestions(String input) async {
-    if (input.isEmpty) return;
+    if (input.isEmpty || _isSelecting || _isFetching) return;
 
     final String apiKey = ApiKeys.googleMapsApiKey;
     if (_currentPosition == null) return;
@@ -49,50 +50,65 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
 
     setState(() {
       _isLoading = true;
+      _isFetching = true;
     });
 
-    var response = await http.get(Uri.parse(url));
-    var json = jsonDecode(response.body);
+    try {
+      _httpClient.close();
+      _httpClient = http.Client();
 
-    if (_controller.text.isEmpty) {
-      setState(() {
-        _isLoading = false;
-        _suggestions = [];
-      });
-      return;
-    }
+      var response = await _httpClient.get(Uri.parse(url));
+      if (_isSelecting) return; // No actualizar si ya se seleccionó una sugerencia
 
-    List<Map<String, dynamic>> suggestions = [];
-    for (var suggestion in json['predictions']) {
-      var placeId = suggestion['place_id'];
-      var shortName = suggestion['structured_formatting']['main_text'];
-      var address = suggestion['structured_formatting']['secondary_text'];
+      var json = jsonDecode(response.body);
 
-      LatLng? suggestionLocation = await _getLatLngFromPlaceId(placeId);
-      if (suggestionLocation != null) {
-        var routeInfo = await _directionsService.getRouteInfo(_currentPosition!, suggestionLocation);
+      if (_controller.text.isEmpty || _isSelecting) {
+        setState(() {
+          _isLoading = false;
+          _isFetching = false;
+          _suggestions = [];
+        });
+        return;
+      }
 
-        suggestions.add({
-          'placeId': placeId,
-          'shortName': shortName, // Store the short name directly here
-          'address': address,
-          'distance': routeInfo?['distance'] ?? 'N/A',
-          'duration': routeInfo?['duration'] ?? 'N/A',
-          'description': suggestion['description'],
-          'location': suggestionLocation,
+      List<Map<String, dynamic>> tempSuggestions = [];
+      for (var suggestion in json['predictions']) {
+        if (_isSelecting) break; // Detener el procesamiento si ya se seleccionó
+        var placeId = suggestion['place_id'];
+        var shortName = suggestion['structured_formatting']['main_text'];
+        var address = suggestion['structured_formatting']['secondary_text'];
+
+        LatLng? suggestionLocation = await _getLatLngFromPlaceId(placeId);
+        if (suggestionLocation != null) {
+          var routeInfo = await _directionsService.getRouteInfo(
+              _currentPosition!, suggestionLocation);
+
+          tempSuggestions.add({
+            'placeId': placeId,
+            'shortName': shortName,
+            'address': address,
+            'distance': routeInfo?['distance'] ?? 'N/A',
+            'duration': routeInfo?['duration'] ?? 'N/A',
+            'description': suggestion['description'],
+            'location': suggestionLocation,
+          });
+        }
+      }
+
+      if (!_isSelecting) {
+        setState(() {
+          _isLoading = false;
+          _isFetching = false;
+          _suggestions = tempSuggestions;
         });
       }
-    }
-
-    if (_controller.text.isNotEmpty) {
+    } catch (e) {
+      if (!_isSelecting) {
+        print("Error al obtener sugerencias: $e");
+      }
       setState(() {
         _isLoading = false;
-        _suggestions = suggestions;
-      });
-    } else {
-      setState(() {
-        _isLoading = false;
-        _suggestions = [];
+        _isFetching = false;
       });
     }
   }
@@ -119,10 +135,15 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
   }
 
   @override
+  void dispose() {
+    _httpClient.close();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        // Barra de búsqueda con botón "x"
         Material(
           elevation: 5.0,
           borderRadius: BorderRadius.circular(30),
@@ -142,7 +163,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                     borderRadius: BorderRadius.circular(30),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: EdgeInsets.only(left: 20, right: 45, top: 15, bottom: 15), //Evita que sobrepase al botón de "x"
+                  contentPadding: EdgeInsets.only(left: 20, right: 45, top: 15, bottom: 15),
                 ),
                 onChanged: (value) {
                   if (value.isNotEmpty) {
@@ -154,7 +175,6 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                   }
                 },
               ),
-              // Botón "x" para limpiar el texto
               if (_controller.text.isNotEmpty)
                 IconButton(
                   icon: Icon(Icons.clear, color: AddressSearchColors.labelColor),
@@ -163,13 +183,12 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
             ],
           ),
         ),
-        /*
         if (_isLoading)
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: CircularProgressIndicator(),
-          ),*/
-        if (_suggestions.isNotEmpty)
+          ),
+        if (_suggestions.isNotEmpty && !_isLoading)
           Container(
             margin: EdgeInsets.symmetric(horizontal: 5, vertical: 5),
             padding: EdgeInsets.all(0),
@@ -183,8 +202,13 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
               itemBuilder: (context, index) {
                 var suggestion = _suggestions[index];
                 return ListTile(
-                  title: Text(suggestion['shortName'],
-                      style: TextStyle(color: AddressSearchColors.suggestionColor, fontWeight: FontWeight.bold)),
+                  title: Text(
+                    suggestion['shortName'],
+                    style: TextStyle(
+                      color: AddressSearchColors.suggestionColor,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -195,12 +219,17 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
                   onTap: () async {
                     _controller.text = suggestion['description'];
                     setState(() {
+                      _isSelecting = true;
                       _suggestions = [];
                     });
-                    widget.onLocationSelected(
+                    FocusScope.of(context).unfocus(); // Cierra el teclado
+                    await widget.onLocationSelected(
                       suggestion['location'],
                       suggestion['shortName'],
-                    ); // Pass the short name); // Pass the stored location directly
+                    );
+                    setState(() {
+                      _isSelecting = false;
+                    });
                   },
                 );
               },

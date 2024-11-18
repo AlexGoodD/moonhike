@@ -17,6 +17,7 @@ class MapController {
   List<Map<String, dynamic>?> routeInfos = [];
   Marker? selectedLocationMarker;
   String? distance; // Nueva variable para almacenar la distancia
+  Timestamp? lastCheckedTimestamp;
 
   // Getter para routeInfos
   List<Map<String, dynamic>?> get _routeInfos => routeInfos;
@@ -136,9 +137,10 @@ class MapController {
       _routeRiskScores.add(riskScore);
     }
 
-    updateUI?.call(); // Actualiza la UI después de recalcular la información
+    updateUI?.call();
   }
 
+  //Migrar _classifyAndDisplayRoutes
   Future<void> _classifyAndDisplayRoutes() async {
     polylines.clear();
     List<double> riskScores = [];
@@ -241,9 +243,8 @@ class MapController {
       userEmail: userEmail!,
       showDeleteDialog: showDeleteConfirmationDialog, // Pasamos la función de eliminación
     );
-    // Forzar la actualización de colores inmediatamente después de recibir cambios
-    updateRouteColors(); // Aplica el cambio de colores en tiempo real
-    updateUI?.call(); // Fuerza la actualización de la UI
+    updateRouteColors();
+    updateUI?.call();
   }
 
   // Método de confirmación de eliminación
@@ -295,13 +296,69 @@ class MapController {
     );
   }
 
+  Set<String> processedReportIds = {}; // IDs de reportes procesados
+
   void _listenToReportChanges(BuildContext context) {
     reportsSubscription?.cancel();
     reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) async {
+      print("Se detectaron ${snapshot.docs.length} reportes en Firestore."); // LOG
+
+      // Actualiza marcadores y círculos
       _updateMarkersAndCircles(snapshot, context, userEmail!);
+
+      // Hora actual para comparar nuevos reportes
+      final DateTime now = DateTime.now();
+
+      for (var doc in snapshot.docs) {
+        var data = doc.data() as Map<String, dynamic>;
+        String reportId = doc.id; // Obtener el ID único del reporte
+
+        // Verificar si este reporte ya fue procesado
+        if (processedReportIds.contains(reportId)) {
+          print("Reporte con ID $reportId ya procesado, ignorado.");
+          continue; // Ignorar este reporte
+        }
+
+        // Verificar que el reporte tenga los datos necesarios
+        if (data['location'] is GeoPoint && data['timestamp'] is Timestamp && data['user'] is String) {
+          GeoPoint geoPoint = data['location'];
+          LatLng reportLocation = LatLng(geoPoint.latitude, geoPoint.longitude);
+          String reportUserEmail = data['user'];
+          Timestamp reportTimestamp = data['timestamp'];
+
+          DateTime reportTime = reportTimestamp.toDate();
+
+          print("Comparando usuario actual (${userEmail?.trim()}) con el usuario del reporte (${reportUserEmail.trim()})");
+
+          // **Ignorar reportes creados por el usuario actual**
+          if (reportUserEmail.trim() == userEmail!.trim()) {
+            print("Reporte creado por el usuario actual, ignorado.");
+            continue;
+          }
+
+          // **Validar si el reporte fue creado en el mismo minuto**
+          if (reportTime.year == now.year &&
+              reportTime.month == now.month &&
+              reportTime.day == now.day &&
+              reportTime.hour == now.hour &&
+              reportTime.minute == now.minute) {
+            // Verificar proximidad del reporte
+            if (_isReportNearUser(reportLocation)) {
+              _showNotification(
+                context,
+                "Un reporte ha sido generado en tu área, toma tus precauciones.",
+              );
+            }
+          }
+
+          // Agregar el reporte procesado a la lista
+          processedReportIds.add(reportId);
+        } else {
+          print("Reporte inválido: $data");
+        }
+      }
+
       _classifyAndDisplayRoutes();
-      //await updateRouteColors(); // Asegura que los colores se actualicen en tiempo real
-      //await loadReports(context); // Carga todos los reportes de nuevo
       updateUI?.call(); // Fuerza la actualización de la UI después de cada cambio
     });
   }
@@ -354,5 +411,28 @@ class MapController {
     await calculateDistanceTo(location);
   }
 
+  bool _isReportNearUser(LatLng reportLocation) {
+    if (currentPosition == null) return false;
 
+    const double distanceThreshold = 500; // Distancia en metros
+    double distance = Geolocator.distanceBetween(
+      currentPosition!.latitude,
+      currentPosition!.longitude,
+      reportLocation.latitude,
+      reportLocation.longitude,
+    );
+
+    return distance <= distanceThreshold;
+  }
+
+  void _showNotification(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        duration: Duration(seconds: 3),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.redAccent,
+      ),
+    );
+  }
 }

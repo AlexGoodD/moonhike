@@ -531,5 +531,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         onTap: onTap, // Agregar funcionalidad al presionar
       ),
     );
+
   }
 }

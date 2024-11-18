@@ -6,7 +6,6 @@ class RouteInfoTab extends StatelessWidget {
   final ScrollController scrollController;
   final Future<void> Function() onStartRoute;
   final List<Map<String, dynamic>?> routeInfos;
-  final List<double> routeRiskScores;
   final bool showRouteDetails; // Nuevo parámetro
 
   RouteInfoTab({
@@ -15,19 +14,12 @@ class RouteInfoTab extends StatelessWidget {
     required this.scrollController,
     required this.onStartRoute,
     required this.routeInfos,
-    required this.routeRiskScores,
     required this.showRouteDetails, // Nuevo parámetro requerido
   });
 
-  // Método para obtener el color del indicador de calidad basado en el puntaje de riesgo
-  Color _getQualityColor(double riskScore) {
-    if (riskScore < 10) return Colors.green;
-    if (riskScore <= 20) return Colors.yellow;
-    return Colors.red;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final hasRouteDetails = routeInfos.isNotEmpty && showRouteDetails;
     return SingleChildScrollView(
       controller: scrollController, // Vincula el controlador aquí
       child: Container(
@@ -72,65 +64,91 @@ class RouteInfoTab extends StatelessWidget {
               maxLines: 1,
             ),
             SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () async {
-                await onStartRoute();
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: paletteColors.thirdColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
+            Row(
+              children: [
+                ElevatedButton(
+                  onPressed: () async {
+                    await onStartRoute();
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: paletteColors.thirdColor,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                  ),
+                  child: Text(
+                    'Iniciar ruta',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
                 ),
-                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-              ),
-              child: Text(
-                'Iniciar ruta',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+                SizedBox(width: 22),
+                if (hasRouteDetails)
+                  Row(
+                    children: [
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on, // Ícono para la distancia (puedes cambiarlo según prefieras)
+                            color: paletteColors.fourthColor, // Color del ícono
+                            size: 20, // Tamaño del ícono
+                          ),
+                          SizedBox(width: 5), // Espacio entre ícono y texto
+                          Text(
+                            '${routeInfos.first?['distance'] ?? 'N/A'}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: paletteColors.fourthColor, // Cambia el color aquí
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 25), // Espaciado entre distancia y duración
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time, // Ícono para duración
+                            color: paletteColors.fourthColor, // Color del ícono
+                            size: 20, // Tamaño del ícono
+                          ),
+                          SizedBox(width: 5), // Espacio entre los dos íconos
+                          Text(
+                            _formatDuration(routeInfos.first?['duration']),
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: paletteColors.fourthColor, // Cambia el color aquí
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+              ],
             ),
             SizedBox(height: 15),
-            if (showRouteDetails && routeInfos.isNotEmpty && routeRiskScores.isNotEmpty)
-              ListView.builder(
-                controller: scrollController, // Usa el mismo controlador
-                shrinkWrap: true, // Evita overflow
-                itemCount: routeInfos.length,
-                itemBuilder: (context, index) {
-                  var riskScore = routeRiskScores[index];
-                  var qualityColor = _getQualityColor(riskScore);
-
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Ruta ${index + 1}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        Container(
-                          width: 20,
-                          height: 20,
-                          decoration: BoxDecoration(
-                            color: qualityColor,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
           ],
         ),
       ),
     );
   }
+
+  // Función para formatear la duración
+  String _formatDuration(String? duration) {
+    if (duration == null || duration == 'N/A') return 'N/A';
+    final regex = RegExp(r'(\d+)\s*hour.*?(\d+)?\s*min.*');
+    final match = regex.firstMatch(duration);
+
+    if (match != null) {
+      final hours = match.group(1) ?? '0';
+      final minutes = match.group(2) ?? '0';
+      return '${hours}h ${minutes}min';
+    }
+
+    return duration;
+  }
+
 }
