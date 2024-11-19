@@ -50,17 +50,28 @@ class _LoginPageState extends State<LoginPage> {
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('userUID', userCredential.user!.uid);
 
-      // Redirigir a la pantalla principal
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => MapScreen()),
-      );
+      // Verificar si el usuario ya ha visto las slides
+      bool hasSeenSlides = prefs.getBool('hasSeenSlides') ?? false;
+
+      if (!hasSeenSlides) {
+        // Si no ha visto las slides, redirigir a SlidesScreen y actualizar la preferencia
+        await prefs.setBool('hasSeenSlides', true);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => SlidesScreen()),
+        );
+      } else {
+        // Si ya ha visto las slides, redirigir directamente al MapScreen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => MapScreen()),
+        );
+      }
     } on FirebaseAuthException catch (e) {
       setState(() {
         _errorMessage = e.message ?? "Error desconocido";
       });
-      print(
-          'Error de autenticación: $e'); // Agrega esta línea para más detalles
+      print('Error de autenticación: $e'); // Agrega esta línea para más detalles
     }
   }
 

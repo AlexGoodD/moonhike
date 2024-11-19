@@ -17,7 +17,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: SlidesScreen(), // Usa SplashScreen como la pantalla inicial
+      home: SplashScreen(), // Usa SplashScreen como la pantalla inicial
     );
   }
 }

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:moonhike/imports.dart';
 
 class SlidesScreen extends StatefulWidget {
   @override
@@ -162,15 +162,23 @@ class _SlidesScreenState extends State<SlidesScreen> {
           ),
           padding: EdgeInsets.symmetric(vertical: 15),
         ),
-        onPressed: () {
+        onPressed: () async {
           if (isLastSlide) {
-            Navigator.pushReplacementNamed(context, '/dashboard');
-          } else {
-            _pageController.nextPage(
-              duration: Duration(milliseconds: 500),
-              curve: Curves.easeInOut,
-            );
-          }
+          // Guardar en SharedPreferences que las diapositivas ya fueron vistas
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          await prefs.setBool('slidesSeen', true);
+
+          // Redirigir a MapScreen
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MapScreen()),
+          );
+        } else {
+          _pageController.nextPage(
+            duration: Duration(milliseconds: 500),
+            curve: Curves.easeInOut,
+          );
+        }
         },
         child: Text(
           text,
