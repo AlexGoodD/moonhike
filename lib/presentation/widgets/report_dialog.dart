@@ -58,7 +58,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 value: 'Inseguridad',
                 groupValue: selectedReportType,
                 title: Text('Inseguridad', style: TextStyle(color: Colors.white)),
-                secondary: Icon(Boxicons.bx_dislike, color: const Color.fromARGB(255, 108, 92, 255)),
+                secondary: Icon(Icons.dangerous_outlined, color: const Color.fromARGB(255, 255, 79, 79)),
                 onChanged: (value) {
                   setState(() {
                     selectedReportType = value;
@@ -69,7 +69,7 @@ class _ReportDialogState extends State<ReportDialog> {
                 value: 'Interés peatonal',
                 groupValue: selectedReportType,
                 title: Text('Interés peatonal', style: TextStyle(color: Colors.white)),
-                secondary: Icon(Icons.directions_walk, color: const Color.fromARGB(255, 255, 79, 79)),
+                secondary: Icon(Icons.directions_walk, color: const Color.fromARGB(255, 108, 92, 255)),
                 onChanged: (value) {
                   setState(() {
                     selectedReportType = value;
@@ -119,7 +119,7 @@ class _ReportDialogState extends State<ReportDialog> {
                           ? AppColors.buttonIcon
                           : paletteColors.fourthColor,
                       disabledForegroundColor: Colors.white.withOpacity(0.5),
-                      disabledBackgroundColor: paletteColors.fourthColor.withOpacity(0.5),
+                      disabledBackgroundColor: paletteColors.thirdColor.withOpacity(0.5),
                     ),
                   ),
                 ],
