@@ -203,7 +203,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 ),
                 trailing: IconButton(
                   icon: Icon(Icons.close, color: ReportsScreenColors.iconColor, size: 24),
-                  onPressed: () => _deleteReport(reportId),
+                  onPressed: () => showDeleteConfirmationDialog(context, reportId),
                 ),
                 isThreeLine: true,
               );
@@ -214,6 +214,55 @@ class _ReportsScreenState extends State<ReportsScreen> {
             onTap: (index) {}, // No necesitas ninguna lógica extra aquí
           ),
         )
+    );
+  }
+
+  void showDeleteConfirmationDialog(BuildContext parentContext, String reportId) {
+    showDialog(
+      context: parentContext,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: paletteColors.secondColor, // Color de fondo del diálogo
+          title: Text(
+            "Eliminar reporte",
+            style: TextStyle(
+              color: Colors.white, // Color del texto del título
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            "¿Estás seguro de que deseas eliminar este reporte?",
+            style: TextStyle(
+              color: paletteColors.fourthColor, // Color del texto del contenido
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Cancelar",
+                style: TextStyle(
+                  color: paletteColors.cancelColor,
+                  fontWeight: FontWeight.normal,
+                ), // Color del botón "Cancelar"
+              ),
+            ),
+            TextButton(
+              onPressed: () async {
+                Navigator.of(context).pop();
+                await _deleteReport(reportId); // Llama a la función de eliminación
+              },
+              child: Text(
+                "Eliminar",
+                style: TextStyle(
+                  color: paletteColors.deleteColor,
+                  fontWeight: FontWeight.bold,
+                ), // Color del botón "Eliminar"
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }

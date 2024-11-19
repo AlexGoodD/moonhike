@@ -19,12 +19,12 @@ class InitialScreen extends StatelessWidget {
                 color: paletteColors.firstColor,
               ),
               child: Center(
+                child: SingleChildScrollView(
                 child: Padding(
                   padding: EdgeInsets.symmetric(horizontal: 32.0),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Spacer(), // Empuja hacia abajo
                       Image.asset(
                         'assets/logo/Logo.png',
                         width: 400, // Ajusta el ancho del logo
@@ -131,7 +131,6 @@ class InitialScreen extends StatelessWidget {
                         ),
                       ),
                       SizedBox(height: 40),
-                      Spacer(), // Empuja el enlace hacia abajo
                       // Texto que redirige a un sitio web
                       GestureDetector(
                         onTap: () {
@@ -156,6 +155,7 @@ class InitialScreen extends StatelessWidget {
                       ),
                     ],
                   ),
+                ),
                 ),
               ),
             ),

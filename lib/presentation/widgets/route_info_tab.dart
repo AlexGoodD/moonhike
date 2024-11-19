@@ -6,7 +6,11 @@ class RouteInfoTab extends StatelessWidget {
   final ScrollController scrollController;
   final Future<void> Function() onStartRoute;
   final List<Map<String, dynamic>?> routeInfos;
+  final RouteRiskCalculator routeRiskCalculator; // Nuevo parámetro
+  final List<List<LatLng>> routes; // Lista de rutas
+  final Set<Marker> markers; // Marcadores para calcular reportes
   final bool showRouteDetails; // Nuevo parámetro
+  final int selectedRouteIndex; // Índice de la ruta seleccionada
 
   RouteInfoTab({
     required this.locationName,
@@ -14,12 +18,17 @@ class RouteInfoTab extends StatelessWidget {
     required this.scrollController,
     required this.onStartRoute,
     required this.routeInfos,
+    required this.routeRiskCalculator, // Nuevo parámetro requerido
+    required this.routes, // Rutas pasadas al widget
+    required this.markers, // Marcadores pasados al widget
     required this.showRouteDetails, // Nuevo parámetro requerido
+    required this.selectedRouteIndex,
   });
 
   @override
   Widget build(BuildContext context) {
     final hasRouteDetails = routeInfos.isNotEmpty && showRouteDetails;
+    final Map<String, dynamic>? activeRouteData = _generateReportForSelectedRoute();
     return SingleChildScrollView(
       controller: scrollController,
       child: Stack(
@@ -72,6 +81,8 @@ class RouteInfoTab extends StatelessWidget {
                     ElevatedButton(
                       onPressed: () async {
                         await onStartRoute();
+                        print("Información de rutas: ");
+                        print(routeInfos); // Verifica que los datos estén en el formato esperado
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: paletteColors.thirdColor,
@@ -89,47 +100,62 @@ class RouteInfoTab extends StatelessWidget {
                         ),
                       ),
                     ),
-                    SizedBox(width: 22),
-                    if (hasRouteDetails)
+                    SizedBox(width: 15),
+                    if (hasRouteDetails && activeRouteData != null) ...[
                       Row(
                         children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on,
-                                color: paletteColors.fourthColor,
-                                size: 20,
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                '${routeInfos.first?['distance'] ?? 'N/A'}',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: paletteColors.fourthColor,
-                                ),
-                              ),
-                            ],
+                          Icon(
+                            Icons.location_on,
+                            color: paletteColors.fourthColor,
+                            size: 20,
                           ),
-                          SizedBox(width: 25),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.access_time,
-                                color: paletteColors.fourthColor,
-                                size: 20,
-                              ),
-                              SizedBox(width: 5),
-                              Text(
-                                _formatDuration(routeInfos.first?['duration']),
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  color: paletteColors.fourthColor,
-                                ),
-                              ),
-                            ],
+                          SizedBox(width: 5),
+                          Text(
+                            '${activeRouteData['distance'] ?? 'N/A'}',
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: paletteColors.fourthColor,
+                            ),
                           ),
                         ],
                       ),
+                      SizedBox(width: 10),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.access_time,
+                            color: paletteColors.fourthColor,
+                            size: 20,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            _formatDuration(activeRouteData['duration']),
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: paletteColors.fourthColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(width: 10),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.report_outlined,
+                            color: paletteColors.fourthColor,
+                            size: 20,
+                          ),
+                          SizedBox(width: 5),
+                          Text(
+                            '${activeRouteData['reportCount']}', // Mostrar reportes de la ruta activa
+                            style: TextStyle(
+                              fontSize: 18,
+                              color: paletteColors.fourthColor,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
                 SizedBox(height: 15),
@@ -145,7 +171,8 @@ class RouteInfoTab extends StatelessWidget {
                 width: 25,
                 height: 25,
                 decoration: BoxDecoration(
-                  color: paletteColors.thirdColor.withOpacity(0.4), // Fondo del círculo
+                  color: paletteColors.thirdColor
+                      .withOpacity(0.4), // Fondo del círculo
                   shape: BoxShape.circle, // Forma circular
                 ),
                 child: Icon(
@@ -159,6 +186,31 @@ class RouteInfoTab extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  // Generar datos únicamente para la ruta seleccionada
+  Map<String, dynamic>? _generateReportForSelectedRoute() {
+    if (selectedRouteIndex < 0 || selectedRouteIndex >= routes.length) {
+      return null; // Índice fuera de rango
+    }
+
+    final route = routes[selectedRouteIndex];
+    double riskScore = routeRiskCalculator.calculateRouteRisk(route, markers);
+    int reportCount = markers.where((marker) {
+      double distance = routeRiskCalculator.calculateDistanceUseCase.execute(
+        marker.position,
+        route.first,
+      );
+      return distance <= 50.0; // Umbral de proximidad
+    }).toSet().length; // Evitar duplicados
+
+    return {
+      'index': selectedRouteIndex + 1,
+      'riskScore': riskScore,
+      'reportCount': reportCount,
+      'distance': routeInfos[selectedRouteIndex]?['distance'],
+      'duration': routeInfos[selectedRouteIndex]?['duration'],
+    };
   }
 
   // Función para formatear la duración
@@ -175,5 +227,4 @@ class RouteInfoTab extends StatelessWidget {
 
     return duration;
   }
-
 }

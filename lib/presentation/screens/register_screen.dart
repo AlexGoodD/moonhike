@@ -46,7 +46,7 @@ class _RegisterPageState extends State<RegisterPage> {
       // Si el registro es exitoso, redirige a la página de inicio de sesión (Para verificar credenciales)
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginPage()),
+        MaterialPageRoute(builder: (context) => SlidesScreen()),
       );
     } on FirebaseAuthException catch (e) {
       setState(() {

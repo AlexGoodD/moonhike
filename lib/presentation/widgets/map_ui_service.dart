@@ -25,7 +25,7 @@ class MapUIService {
     required VoidCallback updateUI,
     required BuildContext context,
     required String userEmail,
-    required void Function(BuildContext, String) showDeleteDialog,
+    //required void Function(BuildContext, String) showDeleteDialog,
   }) {
     final Set<String> reportIds = snapshot.docs.map((doc) => doc.id).toSet();
 
@@ -78,11 +78,6 @@ class MapUIService {
           infoWindow: InfoWindow(
             title: reportType,
             snippet: 'Creado por: $reportUser',
-            onTap: () {
-              if (reportUser == userEmail) {
-                showDeleteDialog(context, doc.id);
-              }
-            },
           ),
         ),
       );
@@ -110,9 +105,11 @@ class MapUIService {
     const double proximityThreshold = 50.0; // Distancia en metros para considerar proximidad
     for (var point in route) {
       if (calculateDistanceUseCase.execute(reportPosition, point) <= proximityThreshold) {
+        print('El reporte está cerca de la ruta.');
         return true;
       }
     }
+    print('El reporte no está cerca de la ruta.');
     return false;
   }
 }

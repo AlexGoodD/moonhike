@@ -18,7 +18,7 @@ class _MapScreenState extends State<MapScreen> {
   String? duration; // Para almacenar la duración estimada
   String? distance; // Para almacenar la distancia estimada
   bool showRouteDetails = false;
-//
+
   // Variables adicionales para almacenar routeInfos y routeRiskScores
   List<Map<String, dynamic>?> routeInfos = [];
   List<double> routeRiskScores = [];
@@ -60,6 +60,7 @@ class _MapScreenState extends State<MapScreen> {
   @override
   void initState() {
     super.initState();
+
 
     routeService = RouteService();
     routeRepository = RouteRepository(routeService);
@@ -171,6 +172,7 @@ class _MapScreenState extends State<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isTablet = MediaQuery.of(context).size.height < 2000;
     return Scaffold(
       body: Stack(
         children: [
@@ -185,8 +187,10 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
-            bottom: isInfoTabOpen ? 270 : 150, // Ajusta según tu diseño
-            left: 320,
+            bottom: isInfoTabOpen
+              ? (isTablet ? 210 : 270) // Si el panel de información está abierto
+            : (isTablet ? 180 : 150), // Si el panel de información está cerrado
+            left: isTablet ? 50 : 320,
             child: FindLocationButton(
               onPressed: () async {
                 await _moveToUserLocation(); // Usa la función que ya definiste
@@ -194,8 +198,10 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
-            bottom: isInfoTabOpen ? 170 : 50,
-            left: 320,
+            bottom: isInfoTabOpen
+                ? (isTablet ? 110 : 170) // Si el panel de información está abierto
+                : (isTablet ? 80 : 50), // Si el panel de información está cerrado
+            left: isTablet ? 50 : 320,
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {
@@ -246,9 +252,9 @@ class _MapScreenState extends State<MapScreen> {
           ),
           if (isInfoTabOpen)
             DraggableScrollableSheet(
-              initialChildSize: 0.2,
-              minChildSize: 0.05,
-              maxChildSize: 0.2,
+              initialChildSize: isTablet ? 0.35 : 0.2,
+              minChildSize: isTablet ? 0.1 : 0.05,
+              maxChildSize: isTablet ? 0.35 : 0.2,
               builder: (context, scrollController) {
                 return RouteInfoTab(
                   locationName: locationName ?? 'Ubicación seleccionada',
@@ -275,7 +281,11 @@ class _MapScreenState extends State<MapScreen> {
                   onStartRoute: _startRoute,
                   scrollController: scrollController, // Pasar scrollController aquí
                   routeInfos: routeInfos,
+                  routeRiskCalculator: mapController.routeRiskCalculator, // Pasa el objeto
+                  routes: mapController.routes, // Pasa las rutas
+                  markers: mapController.markers, // Pasa los marcadores
                   showRouteDetails: showRouteDetails,
+                  selectedRouteIndex: mapController.selectedRouteIndex,
                 );
               },
             ),

@@ -23,9 +23,6 @@ class CustomReportInfoWindow extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Creado por: $createdBy', style: TextStyle(fontSize: 14)),
-          SizedBox(height: 8),
-          Text('Fecha: $date', style: TextStyle(fontSize: 14)),
-          Text('Hora: $time', style: TextStyle(fontSize: 14)),
         ],
       ),
       actions: [

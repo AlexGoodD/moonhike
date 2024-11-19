@@ -41,6 +41,7 @@ class _SplashScreenState extends State<SplashScreen> {
     // Navega a la pantalla correspondiente
     Navigator.pushReplacement(
       context,
+      //MaterialPageRoute(builder: (context) => InitialScreen()),
       MaterialPageRoute(builder: (context) => InitialScreen()),
     );
   }

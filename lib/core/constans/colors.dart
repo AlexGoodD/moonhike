@@ -8,6 +8,15 @@ class AppColors {
   static const routeSelected = Color.fromRGBO(35, 33, 138, 1.0);
   static const routeAlternative = Color.fromRGBO(35, 33, 138, 1.0);
   static const buttonIcon = Color.fromRGBO(94, 60, 229, 1);
+  static const topColor = Color.fromRGBO(0, 0, 0, 1.0);
+  static const bottomColor = Color.fromRGBO(9, 6, 41, 1.0);
+
+  static const accentFont_1 = Color.fromRGBO(255, 191, 116, 1.0);
+  static const accentFont_2 = Color.fromRGBO(153, 151, 188, 1.0);
+  static const accentFont_3 = Color.fromRGBO(255, 220, 180, 1.0);
+  static const accentFont_4 = Color.fromRGBO(118, 89, 231, 1.0);
+  static const accentFont_5 = Color.fromRGBO(78, 68, 190, 1.0);
+  static const floor = Color.fromRGBO(31, 32, 52, 1);
 }
 
 class ProfileColors{

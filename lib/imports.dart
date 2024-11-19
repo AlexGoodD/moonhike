@@ -66,9 +66,14 @@ export 'package:moonhike/presentation/screens/initial_screen.dart';
 export 'package:moonhike/presentation/widgets/find_location.dart';
 export 'package:moonhike/presentation/screens/custom_screen.dart';
 
+//Sliders
+export 'package:moonhike/presentation/screens/slides_screen.dart';
+export 'package:moonhike/presentation/screens/slides_screen/slide_1.dart';
+export 'package:moonhike/presentation/screens/slides_screen/slide_2.dart';
+export 'package:moonhike/presentation/screens/slides_screen/slide_3.dart';
+export 'package:moonhike/presentation/screens/slides_screen/slide_4.dart';
 
-
-export 'package:moonhike/SplashScreen.dart';
+export 'package:moonhike/presentation/screens/splash_screen.dart';
 
 
 

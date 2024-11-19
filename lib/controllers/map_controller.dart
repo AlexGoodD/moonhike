@@ -159,8 +159,8 @@ class MapController {
 
       Color routeColor = routeRiskCalculator.getRouteColor(riskScore);
 
-    selectedRouteIndex = safestRouteIndex;
-    updateUI?.call();
+      selectedRouteIndex = safestRouteIndex;
+      updateUI?.call();
       polylines.add(Polyline(
         polylineId: PolylineId('route_$i'),
         points: routes[i],
@@ -243,59 +243,9 @@ class MapController {
       updateUI: updateUI!,
       context: context,
       userEmail: userEmail!,
-      showDeleteDialog: showDeleteConfirmationDialog, // Pasamos la función de eliminación
     );
     updateRouteColors();
     updateUI?.call();
-  }
-
-  // Método de confirmación de eliminación
-  void showDeleteConfirmationDialog(BuildContext parentContext, String reportId) {
-    showDialog(
-      context: parentContext,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          backgroundColor: paletteColors.secondColor, // Color de fondo del diálogo
-          title: Text(
-            "Eliminar reporte",
-            style: TextStyle(
-              color: Colors.white, // Color del texto del título
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Text(
-            "¿Estás seguro de que deseas eliminar este reporte?",
-            style: TextStyle(
-              color: paletteColors.fourthColor, // Color del texto del contenido
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Cancelar",
-                style: TextStyle(color: paletteColors.cancelColor,               fontWeight: FontWeight.normal,
-                ), // Color del botón "Cancelar"
-              ),
-            ),
-            TextButton(
-              onPressed: () async {
-                Navigator.of(context).pop();
-                await reportsService.deleteReport(reportId);
-                markers.removeWhere((marker) => marker.markerId.value == 'report_$reportId');
-                circles.removeWhere((circle) => circle.circleId.value == 'danger_area_$reportId');
-                updateUI?.call();
-              },
-              child: Text(
-                "Eliminar",
-                style: TextStyle(color: paletteColors.deleteColor,               fontWeight: FontWeight.bold,
-                ), // Color del botón "Eliminar"
-              ),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   Set<String> processedReportIds = {}; // IDs de reportes procesados
@@ -303,7 +253,9 @@ class MapController {
   void _listenToReportChanges(BuildContext context) {
     reportsSubscription?.cancel();
     reportsSubscription = reportsService.listenToReportChanges().listen((snapshot) async {
-      print("Se detectaron ${snapshot.docs.length} reportes en Firestore."); // LOG
+
+      // Limpia los marcadores antes de actualizar
+      markers.clear();
 
       // Actualiza marcadores y círculos
       _updateMarkersAndCircles(snapshot, context, userEmail!);
@@ -382,12 +334,11 @@ class MapController {
   int _countReportsInRoute(List<LatLng> route) {
     int reportCount = 0;
     for (var marker in markers) {
-      // Verifica si el marcador está cerca de algún punto de la ruta seleccionada
       if (mapUIService.isNearRoute(marker.position, route)) {
         reportCount++;
       }
     }
-    print('Cantidad de reportes en la ruta: $reportCount'); // Agrega esta línea para depurar
+    print('Total de reportes para esta ruta: $reportCount'); // Depuración
     return reportCount;
   }
 
