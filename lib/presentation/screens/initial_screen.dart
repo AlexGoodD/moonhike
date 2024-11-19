@@ -24,7 +24,13 @@ class InitialScreen extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Spacer(), // Empuja el enlace hacia abajo
+                      Spacer(), // Empuja hacia abajo
+                      Image.asset(
+                        'assets/logo/Logo.png',
+                        width: 400, // Ajusta el ancho del logo
+                        height: 300, // Ajusta el alto del logo
+                        fit: BoxFit.contain,
+                      ),
                       SizedBox(
                         width: 250, // Ancho específico para el título
                         child: Text(

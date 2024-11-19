@@ -68,7 +68,7 @@ export 'package:moonhike/presentation/screens/custom_screen.dart';
 
 
 
-
+export 'package:moonhike/SplashScreen.dart';
 
 
 
