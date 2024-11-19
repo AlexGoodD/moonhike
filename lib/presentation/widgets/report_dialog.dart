@@ -12,13 +12,12 @@ class ReportDialog extends StatefulWidget {
 
 class _ReportDialogState extends State<ReportDialog> {
   String note = ""; // Almacena la nota escrita por el usuario
-  String? selectedReportType; // Almacena el tipo de reporte seleccionado
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12.0),
+        borderRadius: BorderRadius.circular(16.0),
       ),
       child: Container(
         decoration: BoxDecoration(
@@ -42,87 +41,69 @@ class _ReportDialogState extends State<ReportDialog> {
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 10),
-              RadioListTile<String>(
-                value: 'Mala iluminación',
-                groupValue: selectedReportType,
-                title: Text('Mala iluminación', style: TextStyle(color: Colors.white)),
-                secondary: Icon(Boxicons.bx_bulb, color: const Color.fromARGB(255, 255, 165, 82)),
-                onChanged: (value) {
-                  setState(() {
-                    selectedReportType = value;
-                  });
-                },
-              ),
-              RadioListTile<String>(
-                value: 'Inseguridad',
-                groupValue: selectedReportType,
-                title: Text('Inseguridad', style: TextStyle(color: Colors.white)),
-                secondary: Icon(Icons.dangerous_outlined, color: const Color.fromARGB(255, 255, 79, 79)),
-                onChanged: (value) {
-                  setState(() {
-                    selectedReportType = value;
-                  });
-                },
-              ),
-              RadioListTile<String>(
-                value: 'Interés peatonal',
-                groupValue: selectedReportType,
-                title: Text('Interés peatonal', style: TextStyle(color: Colors.white)),
-                secondary: Icon(Icons.directions_walk, color: const Color.fromARGB(255, 108, 92, 255)),
-                onChanged: (value) {
-                  setState(() {
-                    selectedReportType = value;
-                  });
-                },
-              ),
-              TextField(
-                decoration: InputDecoration(
-                  labelText: 'Nota (opcional)',
-                  labelStyle: TextStyle(color: Colors.white),
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: const Color.fromARGB(66, 255, 255, 255)),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: const Color.fromARGB(105, 255, 255, 255)),
+              SizedBox(height: 8),
+              ListTile(
+                trailing: Icon(
+                  Icons.lightbulb,
+                  color: Color.fromARGB(255, 255, 165, 82), // Cambia el color del ícono
+                ),
+                title: Text(
+                  'Mala iluminación',
+                  style: TextStyle(
+                    color: Colors.white, // Cambia el color del texto
+                    fontWeight: FontWeight.bold, // Opcional: estilo de fuente
                   ),
                 ),
-                style: TextStyle(color: Colors.white),
-                onChanged: (value) {
-                  setState(() {
-                    note = value;
-                  });
-                },
+                onTap: () => widget.onReportTypeSelected('Mala iluminación', note),
               ),
-              SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: Text(
-                      'Cancelar',
-                      style: TextStyle(color: Colors.white),
+              ListTile(
+                trailing: Icon(
+                  Icons.warning,
+                  color: Colors.red, // Cambia el color del ícono
+                ),
+                title: Text(
+                  'Inseguridad',
+                  style: TextStyle(
+                    color: Colors.white, // Cambia el color del texto
+                    fontWeight: FontWeight.bold, // Opcional: estilo de fuente
+                  ),
+                ),
+                onTap: () => widget.onReportTypeSelected('Inseguridad', note),
+              ),
+              ListTile(
+                trailing: Icon(
+                  Icons.directions_walk,
+                  color: Color.fromARGB(255, 108, 92, 255), // Cambia el color del ícono
+                ),
+                title: Text(
+                  'Interés peatonal',
+                  style: TextStyle(
+                    color: Colors.white, // Cambia el color del texto
+                    fontWeight: FontWeight.bold, // Opcional: estilo de fuente
+                  ),
+                ),
+                onTap: () => widget.onReportTypeSelected('Interés peatonal', note),
+              ),
+              SizedBox(height: 16),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  style: TextButton.styleFrom(
+                    backgroundColor: AppColors.buttonIcon, // Fondo del botón
+                    padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0), // Espaciado interno
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30), // Bordes redondeados
                     ),
                   ),
-                  ElevatedButton(
-                    onPressed: selectedReportType != null
-                        ? () {
-                      widget.onReportTypeSelected(selectedReportType!, note);
-                      Navigator.of(context).pop();
-                    }
-                        : null,
-                    child: Text('Subir reporte'),
-                    style: ElevatedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      backgroundColor: selectedReportType != null
-                          ? AppColors.buttonIcon
-                          : paletteColors.fourthColor,
-                      disabledForegroundColor: Colors.white.withOpacity(0.5),
-                      disabledBackgroundColor: paletteColors.thirdColor.withOpacity(0.5),
+                  child: Text(
+                    'Cancelar',
+                    style: TextStyle(
+                      color: Colors.white, // Color del texto
+                      fontWeight: FontWeight.bold, // Opcional: texto en negritas
                     ),
                   ),
-                ],
+                ),
               ),
             ],
           ),

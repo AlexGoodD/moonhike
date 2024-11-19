@@ -18,7 +18,7 @@ class _MapScreenState extends State<MapScreen> {
   String? duration; // Para almacenar la duración estimada
   String? distance; // Para almacenar la distancia estimada
   bool showRouteDetails = false;
-
+//
   // Variables adicionales para almacenar routeInfos y routeRiskScores
   List<Map<String, dynamic>?> routeInfos = [];
   List<double> routeRiskScores = [];

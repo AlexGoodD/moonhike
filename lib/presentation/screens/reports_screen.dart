@@ -167,7 +167,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                 case 'Inseguridad':
                   reportIcon = Icons.warning;
                   break;
-                case 'Poca vialidad peatonal':
+                case 'Interés peatonal':
                   reportIcon = Icons.directions_walk;
                   break;
                 default:
