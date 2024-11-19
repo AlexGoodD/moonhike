@@ -84,6 +84,30 @@ class _ReportDialogState extends State<ReportDialog> {
                 ),
                 onTap: () => widget.onReportTypeSelected('Interés peatonal', note),
               ),
+              TextField(
+                decoration: InputDecoration(
+                  labelText: 'Nota (opcional)',
+                  labelStyle: TextStyle(
+                    color: Colors.white, // Cambia el color del label
+                    fontWeight: FontWeight.bold, // Opcional: estilo del label
+                  ),
+                  enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: const Color.fromARGB(66, 255, 255, 255)), // Color del borde cuando no está enfocado
+                  ),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: const Color.fromARGB(105, 255, 255, 255)), // Color del borde cuando está enfocado
+                  ),
+                ),
+                style: TextStyle(
+                  color: Colors.white, // Cambia el color del texto ingresado
+                  fontSize: 16, // Tamaño de la fuente para el texto ingresado
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    note = value;
+                  });
+                },
+              ),
               SizedBox(height: 16),
               Align(
                 alignment: Alignment.centerRight,
