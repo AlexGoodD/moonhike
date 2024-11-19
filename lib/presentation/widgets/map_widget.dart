@@ -20,7 +20,7 @@ class MapWidget extends StatelessWidget {
       circles: mapController.circles,
       polylines: mapController.polylines,
       myLocationEnabled: true,
-        zoomControlsEnabled: true, // Oculta los controles de zoom
+        zoomControlsEnabled: false, // Oculta los controles de zoom
         myLocationButtonEnabled: false, // Oculta el botón de ubicación
         compassEnabled: false, // Oculta la brújula
         mapToolbarEnabled: false

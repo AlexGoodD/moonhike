@@ -22,13 +22,6 @@ class SelectRouteWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: paletteColors.fourthColor,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: Offset(2, 2),
-                ),
-              ],
             ),
             child: Icon(
               Icons.arrow_back,
@@ -45,13 +38,6 @@ class SelectRouteWidget extends StatelessWidget {
             decoration: BoxDecoration(
               color: paletteColors.fourthColor,
               shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 8,
-                  offset: Offset(2, 2),
-                ),
-              ],
             ),
             child: Icon(
               Icons.arrow_forward,

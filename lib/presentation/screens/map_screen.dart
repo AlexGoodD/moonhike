@@ -26,6 +26,8 @@ class _MapScreenState extends State<MapScreen> {
   // Controlador para DraggableScrollableSheet
   final DraggableScrollableController _draggableController = DraggableScrollableController();
 
+  final GlobalKey<AddressSearchWidgetState> _addressSearchKey = GlobalKey();
+
   Future<void> _onLocationSelected(LatLng location, String name) async {
     setState(() {
       selectedLocation = location;
@@ -178,12 +180,13 @@ class _MapScreenState extends State<MapScreen> {
             left: 10,
             right: 10,
             child: AddressSearchWidget(
-                onLocationSelected: _onLocationSelected, // Pasa ambos valores
+              key: _addressSearchKey, // Asigna la clave aquí
+              onLocationSelected: _onLocationSelected, // Pasa ambos valores
             ),
           ),
           Positioned(
-            bottom: 280, // Ajusta según tu diseño
-            left: 330, // Ajusta según tu diseño
+            bottom: isInfoTabOpen ? 270 : 150, // Ajusta según tu diseño
+            left: 320,
             child: FindLocationButton(
               onPressed: () async {
                 await _moveToUserLocation(); // Usa la función que ya definiste
@@ -191,8 +194,8 @@ class _MapScreenState extends State<MapScreen> {
             ),
           ),
           Positioned(
-            bottom: isInfoTabOpen ? 150 : 25,
-            left: 60,
+            bottom: isInfoTabOpen ? 170 : 50,
+            left: 320,
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {
@@ -251,10 +254,23 @@ class _MapScreenState extends State<MapScreen> {
                   locationName: locationName ?? 'Ubicación seleccionada',
                   onClose: () {
                     setState(() {
+                      // Restablece las variables relacionadas con el estado del InfoTab
                       isInfoTabOpen = false;
                       locationName = null;
                       showRouteDetails = false;
+                      showStartRouteButton = false;
+                      showSelectRouteButtons = false;
+
+                      // Limpia las rutas y marcadores visuales en el mapa
+                      mapController.clearRouteAndMarkers();
+
+                      // Limpia las rutas locales y cualquier dato relacionado
+                      routeInfos.clear();
+                      routeRiskScores.clear();
                     });
+
+                    // Llama al método clearSearch de AddressSearchWidget
+                    _addressSearchKey.currentState?.clearSearch();
                   },
                   onStartRoute: _startRoute,
                   scrollController: scrollController, // Pasar scrollController aquí

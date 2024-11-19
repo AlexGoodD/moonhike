@@ -7,12 +7,25 @@ class FindLocationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: onPressed,
-      backgroundColor: paletteColors.thirdColor, // Cambia el color según tu diseño
-      child: Icon(
-        Icons.my_location,
-        color: paletteColors.fourthColor,
+    return Container(
+      decoration: BoxDecoration(
+        shape: BoxShape.rectangle,
+        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [const Color.fromARGB(255, 86, 86, 174), const Color.fromARGB(255, 53, 36, 140)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: FloatingActionButton(
+        onPressed: onPressed,
+        backgroundColor: Colors.transparent, // Fondo transparente para mostrar el degradado
+        elevation: 0, // Eliminar la sombra para un efecto más limpio
+        child: Icon(
+          Icons.my_location,
+          size: 30.0, // Tamaño del icono
+          color: Colors.white,
+        ),
       ),
     );
   }

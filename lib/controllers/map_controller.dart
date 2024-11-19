@@ -174,6 +174,8 @@ class MapController {
     updateUI?.call();
   }
 
+
+
   Future<void> updateRouteColors() async {
     polylines.clear();
     routeRiskCalculator.updateRouteColors(
@@ -368,6 +370,10 @@ class MapController {
     polylines.clear();
     markers.clear();
     circles.clear();
+
+    // Restablece las rutas y los índices
+    routes.clear();
+    selectedRouteIndex = 0;
 
     // Actualiza la interfaz para reflejar los cambios
     updateUI?.call();

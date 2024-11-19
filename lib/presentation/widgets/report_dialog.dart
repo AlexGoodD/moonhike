@@ -108,14 +108,18 @@ class _ReportDialogState extends State<ReportDialog> {
                   ElevatedButton(
                     onPressed: selectedReportType != null
                         ? () {
-                            widget.onReportTypeSelected(selectedReportType!, note);
-                            Navigator.of(context).pop();
-                          }
-                        : null, // Botón deshabilitado si no hay una selección
+                      widget.onReportTypeSelected(selectedReportType!, note);
+                      Navigator.of(context).pop();
+                    }
+                        : null,
                     child: Text('Subir reporte'),
                     style: ElevatedButton.styleFrom(
-                      foregroundColor: const Color.fromARGB(255, 255, 255, 255), // Cambia el color si lo deseas
-                      backgroundColor: AppColors.buttonIcon,
+                      foregroundColor: Colors.white,
+                      backgroundColor: selectedReportType != null
+                          ? AppColors.buttonIcon
+                          : paletteColors.fourthColor,
+                      disabledForegroundColor: Colors.white.withOpacity(0.5),
+                      disabledBackgroundColor: paletteColors.fourthColor.withOpacity(0.5),
                     ),
                   ),
                 ],

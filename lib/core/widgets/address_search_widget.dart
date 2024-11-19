@@ -5,13 +5,13 @@ import 'package:moonhike/imports.dart';
 class AddressSearchWidget extends StatefulWidget {
   final Future<void> Function(LatLng, String) onLocationSelected;
 
-  AddressSearchWidget({required this.onLocationSelected});
+  AddressSearchWidget({required this.onLocationSelected, Key? key}) : super(key: key);
 
   @override
-  _AddressSearchWidgetState createState() => _AddressSearchWidgetState();
+  AddressSearchWidgetState createState() => AddressSearchWidgetState();
 }
 
-class _AddressSearchWidgetState extends State<AddressSearchWidget> {
+class AddressSearchWidgetState extends State<AddressSearchWidget> {
   TextEditingController _controller = TextEditingController();
   List<Map<String, dynamic>> _suggestions = [];
   bool _isLoading = false;
@@ -127,12 +127,13 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
     return null;
   }
 
-  void _clearSearch() {
+  void clearSearch() {
     _controller.clear();
     setState(() {
       _suggestions = [];
     });
   }
+
 
   @override
   void dispose() {
@@ -178,7 +179,7 @@ class _AddressSearchWidgetState extends State<AddressSearchWidget> {
               if (_controller.text.isNotEmpty)
                 IconButton(
                   icon: Icon(Icons.clear, color: AddressSearchColors.labelColor),
-                  onPressed: _clearSearch,
+                  onPressed: clearSearch,
                 ),
             ],
           ),
