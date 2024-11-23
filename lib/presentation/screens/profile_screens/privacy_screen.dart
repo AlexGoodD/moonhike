@@ -17,6 +17,15 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
       final newPassword = _newPasswordController.text.trim();
       final confirmPassword = _confirmPasswordController.text.trim();
 
+      // Validación: campos vacíos
+      if (currentPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Por favor, completa todos los campos')),
+        );
+        return;
+      }
+
+      // Validación: contraseñas no coinciden
       if (newPassword != confirmPassword) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Las contraseñas no coinciden')),
@@ -26,25 +35,45 @@ class _PrivacyScreenState extends State<PrivacyScreen> {
 
       try {
         User? user = FirebaseAuth.instance.currentUser;
+
+        // Credenciales para la reautenticación
         final credential = EmailAuthProvider.credential(
           email: user?.email ?? '',
           password: currentPassword,
         );
 
+        // Reautenticación
         await user?.reauthenticateWithCredential(credential);
+
+        // Actualización de la contraseña
         await user?.updatePassword(newPassword);
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Contraseña actualizada correctamente')),
         );
+
+        // Limpiar los campos del formulario
         _currentPasswordController.clear();
         _newPasswordController.clear();
         _confirmPasswordController.clear();
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error al cambiar la contraseña: $e')),
-        );
+        // Validación: contraseña actual incorrecta
+        if (e is FirebaseAuthException && e.code == 'wrong-password') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('La contraseña actual es incorrecta')),
+          );
+        } else {
+          // Otros errores
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al cambiar la contraseña: $e')),
+          );
+        }
       }
+    } else {
+      // Validación: formulario inválido
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Por favor, verifica los datos ingresados')),
+      );
     }
   }
 

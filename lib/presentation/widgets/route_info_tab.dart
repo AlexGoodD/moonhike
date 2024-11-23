@@ -214,17 +214,41 @@ class RouteInfoTab extends StatelessWidget {
   }
 
   // Función para formatear la duración
+  // Función para formatear la duración
   String _formatDuration(String? duration) {
-    if (duration == null || duration == 'N/A') return 'N/A';
-    final regex = RegExp(r'(\d+)\s*hour.*?(\d+)?\s*min.*');
-    final match = regex.firstMatch(duration);
+    if (duration == null || duration.isEmpty || duration == 'N/A') return 'N/A';
 
-    if (match != null) {
-      final hours = match.group(1) ?? '0';
-      final minutes = match.group(2) ?? '0';
-      return '${hours}h ${minutes}min';
+    // Patrón para capturar semanas o días, ignorando horas y minutos
+    final regexWeeksDays = RegExp(r'(\d+)\s*(weeks?|days?)');
+    final matchWeeksDays = regexWeeksDays.firstMatch(duration);
+
+    if (matchWeeksDays != null) {
+      // Si contiene semanas o días, retornar eso exclusivamente
+      final value = matchWeeksDays.group(1) ?? '0';
+      final unit = matchWeeksDays.group(2) ?? '';
+      return '$value $unit';
     }
 
+    // Patrón para capturar horas y minutos si no hay semanas o días
+    final regexHoursMinutes = RegExp(r'(\d+)\s*hour.*?(\d+)?\s*min.*');
+    final matchHoursMinutes = regexHoursMinutes.firstMatch(duration);
+
+    if (matchHoursMinutes != null) {
+      // Extraer horas y minutos
+      final hours = int.tryParse(matchHoursMinutes.group(1) ?? '0') ?? 0;
+      final minutes = int.tryParse(matchHoursMinutes.group(2) ?? '0') ?? 0;
+
+      // Formatear en "h min" si ambas partes están presentes
+      if (hours > 0 && minutes > 0) {
+        return '${hours}h ${minutes}min';
+      } else if (hours > 0) {
+        return '${hours}h';
+      } else if (minutes > 0) {
+        return '${minutes}min';
+      }
+    }
+
+    // Si no coincide con el formato esperado, retornar el texto original
     return duration;
   }
 }

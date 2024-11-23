@@ -188,9 +188,9 @@ class _MapScreenState extends State<MapScreen> {
           ),
           Positioned(
             bottom: isInfoTabOpen
-              ? (isTablet ? 210 : 270) // Si el panel de información está abierto
+              ? (isTablet ? 270 : 210) // Si el panel de información está abierto
             : (isTablet ? 180 : 150), // Si el panel de información está cerrado
-            left: isTablet ? 50 : 320,
+            left: isTablet ? 300 : 50,
             child: FindLocationButton(
               onPressed: () async {
                 await _moveToUserLocation(); // Usa la función que ya definiste
@@ -199,9 +199,9 @@ class _MapScreenState extends State<MapScreen> {
           ),
           Positioned(
             bottom: isInfoTabOpen
-                ? (isTablet ? 110 : 170) // Si el panel de información está abierto
+                ? (isTablet ? 170 : 110) // Si el panel de información está abierto
                 : (isTablet ? 80 : 50), // Si el panel de información está cerrado
-            left: isTablet ? 50 : 320,
+            left: isTablet ? 300 : 5,
             child: FloatingActionButtons(
               onStartRoute: () async {
                 try {
@@ -252,9 +252,9 @@ class _MapScreenState extends State<MapScreen> {
           ),
           if (isInfoTabOpen)
             DraggableScrollableSheet(
-              initialChildSize: isTablet ? 0.35 : 0.2,
-              minChildSize: isTablet ? 0.1 : 0.05,
-              maxChildSize: isTablet ? 0.35 : 0.2,
+              initialChildSize: isTablet ? 0.2 : 0.35,
+              minChildSize: isTablet ? 0.05 : 0.1,
+              maxChildSize: isTablet ? 0.2 : 0.35,
               builder: (context, scrollController) {
                 return RouteInfoTab(
                   locationName: locationName ?? 'Ubicación seleccionada',

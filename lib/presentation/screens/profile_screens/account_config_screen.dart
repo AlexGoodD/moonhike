@@ -32,98 +32,6 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [ProfileColors.backgroundTop, ProfileColors.backgroundBottom],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 40.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center, // Centrar el contenido
-            children: [
-              // Flecha para volver atrás y título
-              Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  IconButton(
-                    icon: Icon(Icons.arrow_back, color: Colors.white),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                  SizedBox(width: 10),
-                  Text(
-                    'Configuración de cuenta',
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.w400,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20),
-              _buildAvatarSelection(),
-              SizedBox(height: 20),
-              _buildTextField(_nameController, 'Nombre', Boxicons.bx_user),
-              SizedBox(height: 15),
-              _buildTextField(_emailController, 'Correo electrónico', Boxicons.bx_envelope),
-              SizedBox(height: 15),
-              _buildTextField(_phoneController, 'Teléfono', Boxicons.bx_phone),
-              SizedBox(height: 25),
-              Center(
-                child: Stack(
-                  children: [
-                    Container(
-                      width: 250,
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [Color.fromRGBO(122, 88, 247, 1), Color.fromRGBO(95, 60, 229, 1)], // Colores del gradiente
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                        ),
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      child: SizedBox(height: 55), // Altura del botón
-                    ),
-                    Positioned.fill(
-                      child: ElevatedButton(
-                        onPressed: _updateUserData,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                        child: Text(
-                          'Guardar cambios',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildAvatarSelection() {
     return Center(
       child: Container(
@@ -216,6 +124,98 @@ class _AccountConfigScreenState extends State<AccountConfigScreen> {
         ),
       ),
       style: TextStyle(color: const Color.fromARGB(110, 255, 255, 255)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [ProfileColors.backgroundTop, ProfileColors.backgroundBottom],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: SingleChildScrollView(
+          padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 65.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center, // Centrar el contenido
+            children: [
+              // Flecha para volver atrás y título
+              Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  SizedBox(width: 10),
+                  Text(
+                    'Configuración de cuenta',
+                    style: TextStyle(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 20),
+              _buildAvatarSelection(),
+              SizedBox(height: 20),
+              _buildTextField(_nameController, 'Nombre', Boxicons.bx_user),
+              SizedBox(height: 15),
+              _buildTextField(_emailController, 'Correo electrónico', Boxicons.bx_envelope),
+              SizedBox(height: 15),
+              _buildTextField(_phoneController, 'Teléfono', Boxicons.bx_phone),
+              SizedBox(height: 25),
+              Center(
+                child: Stack(
+                  children: [
+                    Container(
+                      width: 250,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color.fromRGBO(122, 88, 247, 1), Color.fromRGBO(95, 60, 229, 1)], // Colores del gradiente
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                        ),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      child: SizedBox(height: 55), // Altura del botón
+                    ),
+                    Positioned.fill(
+                      child: ElevatedButton(
+                        onPressed: _updateUserData,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: EdgeInsets.zero,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
+                        ),
+                        child: Text(
+                          'Guardar cambios',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
