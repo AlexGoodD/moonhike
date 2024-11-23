@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "827966598217",
+    "project_id": "moonhike-df75b",
+    "storage_bucket": "moonhike-df75b.appspot.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:827966598217:android:632a8fa3aba61d03722398",
+        "android_client_info": {
+          "package_name": "com.alejandroc.moonhike"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB23ptgAEg-Dsf7xKQQ-HE3l4kyIVHjiAE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
